@@ -71,7 +71,7 @@ internal class BepInExLoader : BasePlugin
         private static void CreateUIResPostfix(SV __instance)
         {
             //Localization.LocalizedString.CreateTemplate();
-            if (BundleLoader.MainBundle == null)
+            if (BundleLoader.MainBundle is null)
                 BundleLoader.LoadBundle();
         }
     }
@@ -187,7 +187,7 @@ internal class BepInExLoader : BasePlugin
             //foreach (Define.ActorID actorId in typeof(Define.ActorID).GetEnumValues())
             //{
             //    var npcData = NpcDataManager.Instance.GetNpcData(actorId);
-            //    if (npcData == null) continue;
+            //    if (npcData is null) continue;
             //    BepInExLog.Log($"{npcData.GetNpcName()} ({actorId.ToString()})");
             //    BepInExLog.Log($"{npcData.GetNpcDiscript()}\r\n");
             //    BepInExLog.Log($" - Loves: {string.Join(", ", npcData.GetVeryFavoriteItemDataTables().OrderBy(x => x.ItemIndex).Select(x => $"{x.GetItemName()}({(int)ItemDataTable.GetItemID(x.ItemIndex)})"))}");
@@ -212,7 +212,7 @@ internal class BepInExLoader : BasePlugin
 
             var monsterData = MonsterDataTable.GetDataTable(__instance.monsterDataID);
             var friendMonsterData = RF5DataExtension.GetFriendMonsterDataFromIndex(_generateFriendlistButton.GetMonsterIndex(pageId), monsterData);
-            if (friendMonsterData == null)
+            if (friendMonsterData is null)
             {
                 BepInExLog.LogError("Cannot find friend monster");
                 NPCDetailWindow.NPCDetailWindowManager.TrySetShown(false);

@@ -19,7 +19,7 @@ internal static class LocalizationManager
     public static string Load(string path, string key) => Load(path, key, BootSystem.OptionData.SystemLanguage);
     public static string Load(string path, string key, BootOption.SystemLanguage lang)
     {
-        if (dic == null)
+        if (dic is null)
             dic = new Dictionary<string, LocalizedString>(StringComparer.OrdinalIgnoreCase);
 
         if (dic.ContainsKey(path) == false)

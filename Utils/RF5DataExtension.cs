@@ -31,11 +31,11 @@ internal static class RF5DataExtension
     public static List<ItemDataTable> ItemIdArrayToItemDataTables(IEnumerable<int> itemIds)
     {
         var items = new List<ItemDataTable>();
-        if (itemIds == null) return items;
+        if (itemIds is null) return items;
         foreach (var itemIdInt in itemIds)
         {
             var itemData = ItemDataTable.GetDataTable((ItemID)itemIdInt);
-            if (itemData == null) continue;
+            if (itemData is null) continue;
             items.Add(itemData);
         }
         return items;
@@ -47,19 +47,19 @@ internal static class RF5DataExtension
     public static List<ItemDataTable> GetVeryFavoriteItemDataTables(this NpcData npcData)
     {
         //Loves
-        if (npcData.statusData == null) return new List<ItemDataTable>();
+        if (npcData.statusData is null) return new List<ItemDataTable>();
         return ItemIdArrayToItemDataTables(npcData.statusData.VeryFavoriteItem);
     }
     public static List<ItemDataTable> GetFavoriteItemDataTables(this NpcData npcData)
     {
         //Likes
-        if (npcData.statusData == null) return new List<ItemDataTable>();
+        if (npcData.statusData is null) return new List<ItemDataTable>();
         return ItemIdArrayToItemDataTables(npcData.statusData.FavoriteItem);
     }
     public static List<ItemDataTable> GetNotFavoriteItemDataTables(this NpcData npcData, bool exceptAlmostHates = false)
     {
         //Dislikes
-        if (npcData.statusData == null) return new List<ItemDataTable>();
+        if (npcData.statusData is null) return new List<ItemDataTable>();
 
         if (exceptAlmostHates)
         {
@@ -91,7 +91,7 @@ internal static class RF5DataExtension
     public static List<ItemDataTable> GetNotFavoriteBadlyItemDataTables(this NpcData npcData)
     {
         //Hates
-        if (npcData.statusData == null) return new List<ItemDataTable>();
+        if (npcData.statusData is null) return new List<ItemDataTable>();
         return ItemIdArrayToItemDataTables(npcData.statusData.NotFavoriteBadlyItem);
     }
 
@@ -125,7 +125,7 @@ internal static class RF5DataExtension
         }
 
         var data = FriendMonsterManager.FriendMonsterStatusDatas[monsterIdx];
-        if (data == null)
+        if (data is null)
         {
             BepInExLog.LogError($"Cannot find friend monster from statusId {monsterIdx}");
             return null;

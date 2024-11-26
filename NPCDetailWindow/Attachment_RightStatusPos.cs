@@ -74,35 +74,35 @@ internal class Attachment_RightStatusPos : MonoBehaviour
 
     public static bool InstantiateAndAttach(FriendPageStatusDisp friendPageStatusDisp)
     {
-        if (Instance != null)
+        if (Instance is not null)
         {
             BepInExLog.LogDebug("[Attachment_RightStatusPos] InstantiateAndAttach: instance already exist");
             return true;
         }
 
         var attachTarget = friendPageStatusDisp.transform.Find(AttachPathBasedFriendPageStatusDisp);
-        if (attachTarget == null)
+        if (attachTarget is null)
         {
             BepInExLog.LogError("[Attachment_RightStatusPos] InstantiateAndAttach: Cannot find attachTarget");
             return false;
         }
 
         var equipMenuItemDetail = friendPageStatusDisp.FindComponent<UIOnOffAnimate>(EquipMenuItemDetailWindowPath);
-        if (equipMenuItemDetail == null)
+        if (equipMenuItemDetail is null)
         {
             BepInExLog.LogError("[Attachment_RightStatusPos] InstantiateAndAttach: Cannot find equipMenuItemDetailWindow");
             return false;
         }
 
         var prefab = BundleLoader.MainBundle.LoadIL2CPP<GameObject>(PrefabPathFromBundle);
-        if (prefab == null)
+        if (prefab is null)
         {
             BepInExLog.LogError("[Attachment_RightStatusPos] InstantiateAndAttach: Cannot load prefab");
             return false;
         }
 
         var InstanceGO = GameObject.Instantiate(prefab, attachTarget.transform);
-        if (InstanceGO == null)
+        if (InstanceGO is null)
         {
             BepInExLog.LogError("[Attachment_RightStatusPos] InstantiateAndAttach: Cannot instantiate window");
             return false;
@@ -141,7 +141,7 @@ internal class Attachment_RightStatusPos : MonoBehaviour
     private static Dictionary<Define.ActorID, string> detailTextDic = null;
     private static string GetDetailText(NpcData npcData)
     {
-        if (detailTextDic == null)
+        if (detailTextDic is null)
             detailTextDic = new Dictionary<Define.ActorID, string>();
 
         if (detailTextDic.ContainsKey(npcData.actorId) == false)
@@ -200,7 +200,7 @@ internal class Attachment_RightStatusPos : MonoBehaviour
         text += $"<size=25>{LocalizationManager.Load("monster.detail.title.origin_name")}:</size> {RF5DataExtension.GetMonsterName(monsterData.MonsterId)}\r\n\r\n";
         text += $"<size=25>{LocalizationManager.Load("monster.detail.title.favorites")}</size>\r\n{string.Join(", ", monsterData.GetFavoriteItemDataTables().Select(x => $"{x.GetItemName()}"))}\r\n\r\n";
         //var dropItemData = MonsterDropItemDataTable.GetDataTable(monsterData.DropItemDataID);
-        //if(dropItemData != null)
+        //if(dropItemData is not null)
         //{
         //    text += $"<size=25>{LocalizationManager.Load("")}</size>\r\n{string.Join(", ", RF5DataExtension.ItemIdArrayToItemDataTables(dropItemData.DropItemParamList.ToArray().Select(x => x.ItemID)).Select(x => $"{x.GetItemName()}"))}\r\n\r\n";
         //    text += $"<size=25>{LocalizationManager.Load("")}</size>\r\n{string.Join(", ", RF5DataExtension.ItemIdArrayToItemDataTables(dropItemData.BonusDropItemParamList.ToArray().Select(x => x.ItemID)).Select(x => $"{x.GetItemName()}"))}\r\n\r\n";

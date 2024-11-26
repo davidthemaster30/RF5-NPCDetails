@@ -22,10 +22,10 @@ internal class NPCDetailWindowManager
     private static UIOnOffAnimate equipMenuItemDetail = null;
     public static void TryAttachIfNotExist(FriendPageStatusDisp friendPageStatusDisp)
     {
-        if (Attachment_LeftStatusPos.Instance == null)
+        if (Attachment_LeftStatusPos.Instance is null)
             Attachment_LeftStatusPos.InstantiateAndAttach(friendPageStatusDisp);
 
-        if (Attachment_RightStatusPos.Instance == null)
+        if (Attachment_RightStatusPos.Instance is null)
             Attachment_RightStatusPos.InstantiateAndAttach(friendPageStatusDisp);
     }
     public static void TrySetNPCData(NpcData npcData)

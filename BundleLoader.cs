@@ -15,7 +15,7 @@ internal static class BundleLoader
 
     public static bool LoadBundle()
     {
-        if (MainBundle != null)
+        if (MainBundle is not null)
         {
             BepInExLog.LogDebug("[BundleLoader] Bundle already loaded");
             return true;
@@ -30,7 +30,7 @@ internal static class BundleLoader
 
         MainBundle = AssetBundle.LoadFromFile(mainBundlePath);
 
-        if (MainBundle == null)
+        if (MainBundle is null)
         {
             BepInExLog.LogError($"[BundleLoader] Cannot load bundle at \"{mainBundlePath}\"");
             return false;
@@ -43,7 +43,7 @@ internal static class BundleLoader
     public static T LoadIL2CPP<T>(this AssetBundle bundle, string name) where T : UnityEngine.Object
     {
         var asset = bundle.LoadAsset_Internal(name, Il2CppType.Of<T>());
-        return asset == null ? null : asset.TryCast<T>();
+        return asset is null ? null : asset.TryCast<T>();
     }
 }
 

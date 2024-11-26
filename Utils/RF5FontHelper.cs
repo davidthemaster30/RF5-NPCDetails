@@ -44,12 +44,12 @@ internal static class RF5FontHelper
 
             Loader.AssetManager.Entry<UnityEngine.GameObject>(id, new System.Action<Loader.AssetHandle<UnityEngine.GameObject>>((handler) =>
             {
-                if (handler != null && handler.IsDone && handler.Result != null)
+                if (handler is not null && handler.IsDone && handler.Result is not null)
                 {
                     //[NOTE] Remove from HandleList for get other languages with same id later and avoid give effects main game logic.
                     Loader.AssetHandle.HandleList.Remove(id);
                     var sText = handler.Result.GetComponentInChildren<SText>();
-                    if (sText == null)
+                    if (sText is null)
                     {
                         BepInExLog.LogError($"FontLoader: Cannot find SText");
                     }
@@ -67,7 +67,7 @@ internal static class RF5FontHelper
     }
     public static void SetFontGlobal(GameObject root)
     {
-        if (MainFont == null)
+        if (MainFont is null)
         {
             BepInExLog.LogError("SetFontGlobal: font was not ready");
             return;

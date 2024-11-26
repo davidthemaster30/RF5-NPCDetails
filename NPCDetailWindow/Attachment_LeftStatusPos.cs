@@ -173,28 +173,28 @@ internal class Attachment_LeftStatusPos : MonoBehaviour
 
     public static bool InstantiateAndAttach(FriendPageStatusDisp friendPageStatusDisp)
     {
-        if (Instance != null)
+        if (Instance is not null)
         {
             BepInExLog.LogDebug("[Attachment_LeftStatusPos] InstantiateAndAttach: instance already exist");
             return true;
         }
 
         var attachTarget = friendPageStatusDisp.transform.Find(AttachPathBasedFriendPageStatusDisp);
-        if (attachTarget == null)
+        if (attachTarget is null)
         {
             BepInExLog.LogError("[Attachment_LeftStatusPos] InstantiateAndAttach: Cannot find attachTarget");
             return false;
         }
 
         var prefab = BundleLoader.MainBundle.LoadIL2CPP<GameObject>(PrefabPathFromBundle);
-        if (prefab == null)
+        if (prefab is null)
         {
             BepInExLog.LogError("[Attachment_LeftStatusPos] InstantiateAndAttach: Cannot load prefab");
             return false;
         }
 
         var InstanceGO = GameObject.Instantiate(prefab, attachTarget.transform);
-        if (InstanceGO == null)
+        if (InstanceGO is null)
         {
             BepInExLog.LogError("[Attachment_LeftStatusPos] InstantiateAndAttach: Cannot instantiate window");
             return false;
