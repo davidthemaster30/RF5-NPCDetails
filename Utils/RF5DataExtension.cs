@@ -5,19 +5,16 @@ internal static class RF5DataExtension
     internal static string GetItemName(this ItemDataTable dataTable)
     {
         return SV.UIRes.GetText(SysTextGroup.ItemUINameData, dataTable.ItemIndex);
-        //return dataTable.ScreenName; //same
     }
 
     internal static string GetNpcName(this NpcData data)
     {
         return SV.UIRes.GetText(SysTextGroup.NPCNameData, data.NpcId);
-        //return data.statusData.FocusName; //It returnes japanese name.
     }
 
     internal static string GetNpcDiscript(this NpcData data)
     {
         return SV.UIRes.GetText(SysTextGroup.NPCDiscriptData, data.NpcId);
-        //return data.statusData.FocusName; //It returnes japanese name.
     }
 
     internal static List<ItemDataTable> ItemIdArrayToItemDataTables(IEnumerable<ItemID> itemIds)
@@ -134,6 +131,7 @@ internal static class RF5DataExtension
                 }
             }
         }
+
         season = Define.Season.None;
         day = -1;
         return false;

@@ -62,7 +62,9 @@ public class BepInExLoader : BasePlugin
         {
             //Localization.LocalizedString.CreateTemplate();
             if (BundleLoader.MainBundle is null)
+            {
                 BundleLoader.LoadBundle();
+            }
         }
     }
 
@@ -87,17 +89,6 @@ public class BepInExLoader : BasePlugin
             //    //ItemStorageManager.GetStorage(Define.StorageType.Rucksack).PushItemIn(ItemData.Instantiate(ItemID.Item_Yakiimo, 1));
             //}
         }
-
-        private static string[] LAGACY_FILES_PATH = {
-                Path.Combine(GetPluginRootDirectory(), GUID, "texts.ini"),
-                Path.Combine(GetPluginRootDirectory(), GUID, "Localized", "chs.json"),
-                Path.Combine(GetPluginRootDirectory(), GUID, "Localized", "cht.json"),
-                Path.Combine(GetPluginRootDirectory(), GUID, "Localized", "de.json"),
-                Path.Combine(GetPluginRootDirectory(), GUID, "Localized", "en.json"),
-                Path.Combine(GetPluginRootDirectory(), GUID, "Localized", "fr.json"),
-                Path.Combine(GetPluginRootDirectory(), GUID, "Localized", "ja.json"),
-                Path.Combine(GetPluginRootDirectory(), GUID, "Localized", "ko.json"),
-            };
 
         [HarmonyPatch(typeof(CampMenuMain), nameof(CampMenuMain.StartCamp))]
         [HarmonyPostfix]
@@ -183,7 +174,6 @@ public class BepInExLoader : BasePlugin
             //BepInExLog.Log($"SetStatusMonsterPostfix. pageId: {pageId}, monsterDataID: {__instance.monsterDataID}");
             NPCDetailWindow.NPCDetailWindowManager.TryAttachIfNotExist(__instance);
 
-            //NPCDetailWindow.NPCDetailWindowManager.TrySetShown(false);
             NPCDetailWindow.NPCDetailWindowManager.TrySetShown(true);
 
             var monsterData = MonsterDataTable.GetDataTable(__instance.monsterDataID);

@@ -8,7 +8,6 @@ internal class NPCDetailWindowManager
         Instance = this;
     }
 
-    private static UIOnOffAnimate? equipMenuItemDetail = null;
     internal static void TryAttachIfNotExist(FriendPageStatusDisp friendPageStatusDisp)
     {
         if (Attachment_LeftStatusPos.Instance is null)

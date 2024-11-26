@@ -2,10 +2,6 @@
 
 namespace RF5.HisaCat.NPCDetails.Utils;
 
-internal static class UnityExtension
-{
-}
-
 internal static class GameObjectExtension
 {
     internal static bool TryFindComponent<T>(this Component self, string name, out T component, bool showErrLog = true) where T : Component
