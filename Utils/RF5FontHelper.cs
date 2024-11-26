@@ -1,9 +1,4 @@
 ﻿using HarmonyLib;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,18 +6,23 @@ namespace RF5.HisaCat.NPCDetails.Utils;
 
 internal static class RF5FontHelper
 {
-    public static Font MainFont { get; private set; }
+    internal static Font MainFont { get; private set; }
 
     [HarmonyPatch]
-    public class FontLoader
+    internal static class FontLoader
     {
         private static bool Initialized = false;
+        private const int id = (int)Loader.ID.Prefab.UIOBJECT_LOADER_UIMOVIEROOM;
 
         [HarmonyPatch(typeof(SV), nameof(SV.CreateUIRes))]
         [HarmonyPostfix]
-        public static void CreateUIResPostfix(SV __instance)
+        internal static void CreateUIResPostfix(SV __instance)
         {
-            if (Initialized) return;
+            if (Initialized)
+            {
+                return;
+            }
+
             Initialized = true;
 
             //Check font asset from: Assets/AddressableAssets/{LANG}/Prefab/UIObject/Loader/UIMovieRoom.prefab
@@ -35,12 +35,11 @@ internal static class RF5FontHelper
             //Kor: KoreanSMI-L
             //Kor(Assets/AddressableAssets/Kor/Prefab/LanguageOnly/UI/Craft/UI_Solowork_Success.prefab): KoreanPOR-L
 
-            var enumId = Loader.ID.Prefab.UIOBJECT_LOADER_UIMOVIEROOM;
-            var id = (int)enumId;
-
             //[NOTE] Remove from HandleList if id already exist for get other languages with same id in same frame
             if (Loader.AssetHandle.HandleList.ContainsKey(id))
+            {
                 Loader.AssetHandle.HandleList.Remove(id);
+            }
 
             Loader.AssetManager.Entry<UnityEngine.GameObject>(id, new System.Action<Loader.AssetHandle<UnityEngine.GameObject>>((handler) =>
             {
@@ -60,21 +59,24 @@ internal static class RF5FontHelper
                 }
                 else
                 {
-                    BepInExLog.LogError($"FontLoader: AssetManager.Entry {enumId} failed");
+                    BepInExLog.LogError($"FontLoader: AssetManager.Entry {id} failed");
                 }
             }), -1, false);
         }
     }
-    public static void SetFontGlobal(GameObject root)
+
+    internal static void SetFontGlobal(GameObject root)
     {
-        if (MainFont is null)
+        if (MainFont is null || root is null)
         {
             BepInExLog.LogError("SetFontGlobal: font was not ready");
             return;
         }
-        var texts = root.GetComponentsInChildren<Text>(true);
-        foreach (var text in texts)
+
+        foreach (var text in root.GetComponentsInChildren<Text>(true))
+        {
             text.font = MainFont;
+        }
     }
 }
 

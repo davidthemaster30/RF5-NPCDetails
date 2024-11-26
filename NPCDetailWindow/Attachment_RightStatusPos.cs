@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using RF5.HisaCat.NPCDetails.Utils;
 using RF5.HisaCat.NPCDetails.Localization;
@@ -15,49 +10,67 @@ namespace RF5.HisaCat.NPCDetails.NPCDetailWindow;
 /// </summary>
 internal class Attachment_RightStatusPos : MonoBehaviour
 {
-    internal static Attachment_RightStatusPos Instance { get; private set; }
+    internal static Attachment_RightStatusPos? Instance { get; private set; }
 
-    public const string PrefabPathFromBundle = "[RF5.HisaCat.NPCDetails]RightStatusPos";
+    internal const string PrefabPathFromBundle = "[RF5.HisaCat.NPCDetails]RightStatusPos";
 
-    public const string AttachPathBasedFriendPageStatusDisp = "StatusObj/FriendsStatus/RightStatusPos";
-    public const string EquipMenuItemDetailWindowPath = "StatusObj/FriendsStatus/EquipMenuItemDetail/OnOffWindows";
+    internal const string AttachPathBasedFriendPageStatusDisp = "StatusObj/FriendsStatus/RightStatusPos";
+    internal const string EquipMenuItemDetailWindowPath = "StatusObj/FriendsStatus/EquipMenuItemDetail/OnOffWindows";
 
-    public static class TransformPaths
+    internal static class TransformPaths
     {
-        public const string Window = "Window";
+        internal const string Window = "Window";
 
-        public const string Status_NPC = "Status_NPC";
-        public const string NPC_DetailText = "TextArea/Mask/Text";
+        internal const string Status_NPC = "Status_NPC";
+        internal const string NPC_DetailText = "TextArea/Mask/Text";
 
-        public const string Status_Monster = "Status_Monster";
-        public const string Monster_DetailText = "TextArea/Mask/Text";
+        internal const string Status_Monster = "Status_Monster";
+        internal const string Monster_DetailText = "TextArea/Mask/Text";
     }
 
     private GameObject m_Window_GO = null;
 
-    public GameObject m_Status_NPC_GO = null;
-    public GameObject m_Status_Monster_GO = null;
+    internal GameObject m_Status_NPC_GO = null;
+    internal GameObject m_Status_Monster_GO = null;
 
     private Text m_NPC_DetailText = null;
     private Text m_Monster_DetailText = null;
-    public bool PreloadPathes()
+    internal bool PreloadPathes()
     {
         {
             GameObject root;
-            if (this.TryFindGameObject(TransformPaths.Window, out root) == false) return false;
-            this.m_Window_GO = root;
+            if (!this.TryFindGameObject(TransformPaths.Window, out root))
+            {
+                return false;
+            }
+
+            m_Window_GO = root;
 
             {
                 GameObject parent;
-                if (root.TryFindGameObject(TransformPaths.Status_NPC, out parent) == false) return false;
-                this.m_Status_NPC_GO = parent;
-                if (parent.TryFindComponent<Text>(TransformPaths.NPC_DetailText, out this.m_NPC_DetailText) == false) return false;
+                if (!root.TryFindGameObject(TransformPaths.Status_NPC, out parent))
+                {
+                    return false;
+                }
+
+                m_Status_NPC_GO = parent;
+                if (!parent.TryFindComponent<Text>(TransformPaths.NPC_DetailText, out m_NPC_DetailText))
+                {
+                    return false;
+                }
             }
             {
                 GameObject parent;
-                if (root.TryFindGameObject(TransformPaths.Status_Monster, out parent) == false) return false;
-                this.m_Status_Monster_GO = parent;
-                if (parent.TryFindComponent<Text>(TransformPaths.Monster_DetailText, out this.m_Monster_DetailText) == false) return false;
+                if (!root.TryFindGameObject(TransformPaths.Status_Monster, out parent))
+                {
+                    return false;
+                }
+
+                m_Status_Monster_GO = parent;
+                if (!parent.TryFindComponent<Text>(TransformPaths.Monster_DetailText, out m_Monster_DetailText))
+                {
+                    return false;
+                }
             }
         }
         return true;
@@ -65,14 +78,14 @@ internal class Attachment_RightStatusPos : MonoBehaviour
 
     private FriendPageStatusDisp friendPageStatusDisp = null;
     private UIOnOffAnimate equipMenuItemDetail = null;
-    public bool Init(FriendPageStatusDisp friendPageStatusDisp, UIOnOffAnimate equipMenuItemDetail)
+    internal bool Init(FriendPageStatusDisp friendPageStatusDisp, UIOnOffAnimate equipMenuItemDetail)
     {
         this.friendPageStatusDisp = friendPageStatusDisp;
         this.equipMenuItemDetail = equipMenuItemDetail;
         return PreloadPathes();
     }
 
-    public static bool InstantiateAndAttach(FriendPageStatusDisp friendPageStatusDisp)
+    internal static bool InstantiateAndAttach(FriendPageStatusDisp friendPageStatusDisp)
     {
         if (Instance is not null)
         {
@@ -110,10 +123,11 @@ internal class Attachment_RightStatusPos : MonoBehaviour
         RF5FontHelper.SetFontGlobal(InstanceGO);
 
         Instance = InstanceGO.AddComponent<Attachment_RightStatusPos>();
-        if (Instance.Init(friendPageStatusDisp, equipMenuItemDetail) == false)
+        if (!Instance.Init(friendPageStatusDisp, equipMenuItemDetail))
         {
             BepInExLog.LogError("[Attachment_RightStatusPos] InstantiateAndAttach: Initialize failed");
-            Instance = null; Destroy(InstanceGO);
+            Instance = null;
+            Destroy(InstanceGO);
             return false;
         }
 
@@ -121,30 +135,30 @@ internal class Attachment_RightStatusPos : MonoBehaviour
         return true;
     }
 
-    public void SetShown(bool isShown)
+    internal void SetShown(bool isShown)
     {
-        this.gameObject.SetActive(isShown);
-    }
-    public bool GetShown()
-    {
-        return this.gameObject.activeSelf;
+        gameObject.SetActive(isShown);
     }
 
-    public void SetNPCData(NpcData npcData)
+    internal bool GetShown()
     {
-        this.m_Status_NPC_GO.SetActive(true);
-        this.m_Status_Monster_GO.SetActive(false);
+        return gameObject.activeSelf;
+    }
 
-        this.m_NPC_DetailText.text = GetDetailText(npcData);
+    internal void SetNPCData(NpcData npcData)
+    {
+        m_Status_NPC_GO.SetActive(true);
+        m_Status_Monster_GO.SetActive(false);
+
+        m_NPC_DetailText.text = GetDetailText(npcData);
     }
 
     private static Dictionary<Define.ActorID, string> detailTextDic = null;
     private static string GetDetailText(NpcData npcData)
     {
-        if (detailTextDic is null)
-            detailTextDic = new Dictionary<Define.ActorID, string>();
+        detailTextDic ??= new Dictionary<Define.ActorID, string>();
 
-        if (detailTextDic.ContainsKey(npcData.actorId) == false)
+        if (!detailTextDic.ContainsKey(npcData.actorId))
         {
             var text_Birthday = LocalizationManager.Load("npc.detail.title.birthday");
             var text_Loves = LocalizationManager.Load("npc.detail.title.loves");
@@ -190,10 +204,11 @@ internal class Attachment_RightStatusPos : MonoBehaviour
         }
         return detailTextDic[npcData.actorId];
     }
-    public void SetMonsterData(FriendMonsterStatusData friendMonsterData, MonsterDataTable monsterData)
+
+    internal void SetMonsterData(FriendMonsterStatusData friendMonsterData, MonsterDataTable monsterData)
     {
-        this.m_Status_NPC_GO.SetActive(false);
-        this.m_Status_Monster_GO.SetActive(true);
+        m_Status_NPC_GO.SetActive(false);
+        m_Status_Monster_GO.SetActive(true);
 
         var text = string.Empty;
 
@@ -208,14 +223,16 @@ internal class Attachment_RightStatusPos : MonoBehaviour
         //}
 
         text += "\r\n";
-        this.m_Monster_DetailText.text = text;
+        m_Monster_DetailText.text = text;
     }
 
     private void Update()
     {
         bool equipMenuItemDetailOpened = equipMenuItemDetail.gameObject.activeInHierarchy && equipMenuItemDetail.isOpen;
-        if (!equipMenuItemDetailOpened != this.m_Window_GO.gameObject.activeSelf)
-            this.m_Window_GO.gameObject.SetActive(!equipMenuItemDetailOpened);
+        if (!equipMenuItemDetailOpened != m_Window_GO.gameObject.activeSelf)
+        {
+            m_Window_GO.gameObject.SetActive(!equipMenuItemDetailOpened);
+        }
     }
 
     private void OnDestroy()
@@ -224,7 +241,6 @@ internal class Attachment_RightStatusPos : MonoBehaviour
         {
             BepInExLog.LogDebug("[Attachment_RightStatusPos] Destroyed");
             Instance = null;
-            return;
         }
     }
 }

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace RF5.HisaCat.NPCDetails.Utils;
+﻿namespace RF5.HisaCat.NPCDetails.Utils;
 
 //internal class SimilarItemGroup
 //{

@@ -1,65 +1,80 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace RF5.HisaCat.NPCDetails.Utils;
+﻿namespace RF5.HisaCat.NPCDetails.Utils;
 
 internal static class RF5DataExtension
 {
-    public static string GetItemName(this ItemDataTable dataTable)
+    internal static string GetItemName(this ItemDataTable dataTable)
     {
         return SV.UIRes.GetText(SysTextGroup.ItemUINameData, dataTable.ItemIndex);
         //return dataTable.ScreenName; //same
     }
-    public static string GetNpcName(this NpcData data)
+
+    internal static string GetNpcName(this NpcData data)
     {
         return SV.UIRes.GetText(SysTextGroup.NPCNameData, data.NpcId);
         //return data.statusData.FocusName; //It returnes japanese name.
     }
-    public static string GetNpcDiscript(this NpcData data)
+
+    internal static string GetNpcDiscript(this NpcData data)
     {
         return SV.UIRes.GetText(SysTextGroup.NPCDiscriptData, data.NpcId);
         //return data.statusData.FocusName; //It returnes japanese name.
     }
 
-    public static List<ItemDataTable> ItemIdArrayToItemDataTables(IEnumerable<ItemID> itemIds)
+    internal static List<ItemDataTable> ItemIdArrayToItemDataTables(IEnumerable<ItemID> itemIds)
     {
         return ItemIdArrayToItemDataTables(itemIds.Select(x => (int)x));
     }
-    public static List<ItemDataTable> ItemIdArrayToItemDataTables(IEnumerable<int> itemIds)
+
+    internal static List<ItemDataTable> ItemIdArrayToItemDataTables(IEnumerable<int> itemIds)
     {
         var items = new List<ItemDataTable>();
-        if (itemIds is null) return items;
+        if (itemIds is null)
+        {
+            return items;
+        }
+
         foreach (var itemIdInt in itemIds)
         {
             var itemData = ItemDataTable.GetDataTable((ItemID)itemIdInt);
-            if (itemData is null) continue;
+            if (itemData is null)
+            {
+                continue;
+            }
+
             items.Add(itemData);
         }
         return items;
     }
-    public static List<ItemDataTable> RemoveTrashItems(List<ItemDataTable> items)
+
+    internal static List<ItemDataTable> RemoveTrashItems(List<ItemDataTable> items)
     {
         return items.Where(x => x.ItemType != ItemType.Trash).ToList();
     }
-    public static List<ItemDataTable> GetVeryFavoriteItemDataTables(this NpcData npcData)
+
+    internal static List<ItemDataTable> GetVeryFavoriteItemDataTables(this NpcData npcData)
     {
         //Loves
-        if (npcData.statusData is null) return new List<ItemDataTable>();
-        return ItemIdArrayToItemDataTables(npcData.statusData.VeryFavoriteItem);
+        return npcData?.statusData is null ? [] : ItemIdArrayToItemDataTables(npcData.statusData.VeryFavoriteItem);
     }
-    public static List<ItemDataTable> GetFavoriteItemDataTables(this NpcData npcData)
+
+    internal static List<ItemDataTable> GetFavoriteItemDataTables(this MonsterDataTable monsterData)
+    {
+        return monsterData?.FavoriteItemData is null ? [] : ItemIdArrayToItemDataTables(monsterData.FavoriteItemData.ItemIDArray);
+    }
+
+    internal static List<ItemDataTable> GetFavoriteItemDataTables(this NpcData npcData)
     {
         //Likes
-        if (npcData.statusData is null) return new List<ItemDataTable>();
-        return ItemIdArrayToItemDataTables(npcData.statusData.FavoriteItem);
+        return npcData?.statusData is null ? [] : ItemIdArrayToItemDataTables(npcData.statusData.FavoriteItem);
     }
-    public static List<ItemDataTable> GetNotFavoriteItemDataTables(this NpcData npcData, bool exceptAlmostHates = false)
+
+    internal static List<ItemDataTable> GetNotFavoriteItemDataTables(this NpcData npcData, bool exceptAlmostHates = false)
     {
         //Dislikes
-        if (npcData.statusData is null) return new List<ItemDataTable>();
+        if (npcData?.statusData is null)
+        {
+            return [];
+        }
 
         if (exceptAlmostHates)
         {
@@ -86,20 +101,28 @@ internal static class RF5DataExtension
             }).ToList();
         }
         else
+        {
             return ItemIdArrayToItemDataTables(npcData.statusData.NotFavoriteItem);
+        }
     }
-    public static List<ItemDataTable> GetNotFavoriteBadlyItemDataTables(this NpcData npcData)
+
+    internal static List<ItemDataTable> GetNotFavoriteBadlyItemDataTables(this NpcData npcData)
     {
         //Hates
-        if (npcData.statusData is null) return new List<ItemDataTable>();
+        if (npcData?.statusData is null)
+        {
+            return new List<ItemDataTable>();
+        }
+
         return ItemIdArrayToItemDataTables(npcData.statusData.NotFavoriteBadlyItem);
     }
 
-    public static bool TryFindNPCBirthday(this NpcData npcData, out Define.Season season, out int day)
+    internal static bool TryFindNPCBirthday(this NpcData npcData, out Define.Season season, out int day)
     {
         return TryFindNPCBirthday(npcData.NpcId, out season, out day);
     }
-    public static bool TryFindNPCBirthday(int npcID, out Define.Season season, out int day)
+
+    internal static bool TryFindNPCBirthday(int npcID, out Define.Season season, out int day)
     {
         for (season = Define.Season.Spring; season <= Define.Season.Winter; season++)
         {
@@ -116,7 +139,7 @@ internal static class RF5DataExtension
         return false;
     }
 
-    public static FriendMonsterStatusData GetFriendMonsterDataFromIndex(int monsterIdx, MonsterDataTable monsterData)
+    internal static FriendMonsterStatusData? GetFriendMonsterDataFromIndex(int monsterIdx, MonsterDataTable monsterData)
     {
         if (monsterIdx < 0 || monsterIdx >= FriendMonsterManager.FriendMonsterStatusDatas.Count)
         {
@@ -140,12 +163,7 @@ internal static class RF5DataExtension
         return data;
     }
 
-    public static List<ItemDataTable> GetFavoriteItemDataTables(this MonsterDataTable monsterData)
-    {
-        return ItemIdArrayToItemDataTables(monsterData.FavoriteItemData.ItemIDArray);
-    }
-
-    public static string GetFarmName(Farm.FarmManager.FARM_ID farmId)
+    internal static string GetFarmName(Farm.FarmManager.FARM_ID farmId)
     {
         switch (farmId)
         {
@@ -169,12 +187,12 @@ internal static class RF5DataExtension
         }
     }
 
-    public static string GetMonsterName(MonsterID monsterId)
+    internal static string GetMonsterName(MonsterID monsterId)
     {
         return SV.UIRes.MonsterName(monsterId);
     }
 
-    public static string GetLocalizedPlaceName(Define.Place place)
+    internal static string GetLocalizedPlaceName(Define.Place place)
     {
         switch (place)
         {

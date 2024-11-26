@@ -1,34 +1,28 @@
 ﻿using BepInEx;
 using HarmonyLib;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using BepInEx.Unity.IL2CPP;
 using Il2CppInterop.Runtime.Injection;
-using UnityEngine;
 using RF5.HisaCat.NPCDetails.Utils;
 
 namespace RF5.HisaCat.NPCDetails;
 
 [BepInPlugin(GUID, MODNAME, VERSION)]
-internal class BepInExLoader : BasePlugin
+public class BepInExLoader : BasePlugin
 {
-    public const string
+    internal const string
         MODNAME = "NPCDetails",
         AUTHOR = "HisaCat",
         GUID = "RF5." + AUTHOR + "." + MODNAME,
         VERSION = "1.4.0";
 
-    public static BepInEx.Logging.ManualLogSource log;
+    internal static BepInEx.Logging.ManualLogSource log;
 
-    public static string GetPluginRootDirectory()
+    internal static string GetPluginRootDirectory()
     {
-        return System.IO.Path.GetDirectoryName(IL2CPPChainloader.Instance.Plugins[GUID].Location);
+        return Path.GetDirectoryName(IL2CPPChainloader.Instance.Plugins[GUID].Location);
     }
 
-    public BepInExLoader()
+    internal BepInExLoader()
     {
         log = Log;
     }
@@ -41,7 +35,7 @@ internal class BepInExLoader : BasePlugin
             ClassInjector.RegisterTypeInIl2Cpp<NPCDetailWindow.Attachment_LeftStatusPos>();
             ClassInjector.RegisterTypeInIl2Cpp<NPCDetailWindow.Attachment_RightStatusPos>();
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
             BepInExLog.LogError($"Harmony - FAILED to Register Il2Cpp Types! {e}");
         }
@@ -55,7 +49,7 @@ internal class BepInExLoader : BasePlugin
             Harmony.CreateAndPatchAll(typeof(UIPatcher));
             //Harmony.CreateAndPatchAll(typeof(CalcStatusPatcher)); //for test
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
             BepInExLog.LogError($"Harmony - FAILED to Apply Patch's! {e}");
         }
@@ -64,7 +58,7 @@ internal class BepInExLoader : BasePlugin
 
 
     [HarmonyPatch]
-    internal class SVPatcher
+    internal static class SVPatcher
     {
         [HarmonyPatch(typeof(SV), nameof(SV.CreateUIRes))]
         [HarmonyPostfix]
@@ -91,7 +85,7 @@ internal class BepInExLoader : BasePlugin
     //}
 
     [HarmonyPatch]
-    internal class UIPatcher
+    internal static class UIPatcher
     {
         [HarmonyPatch(typeof(CampMenuMain), nameof(CampMenuMain.Update))]
         [HarmonyPostfix]
@@ -113,14 +107,14 @@ internal class BepInExLoader : BasePlugin
         }
 
         private static string[] LAGACY_FILES_PATH = {
-                System.IO.Path.Combine(BepInExLoader.GetPluginRootDirectory(), BepInExLoader.GUID, "texts.ini"),
-                System.IO.Path.Combine(BepInExLoader.GetPluginRootDirectory(), BepInExLoader.GUID, "Localized", "chs.json"),
-                System.IO.Path.Combine(BepInExLoader.GetPluginRootDirectory(), BepInExLoader.GUID, "Localized", "cht.json"),
-                System.IO.Path.Combine(BepInExLoader.GetPluginRootDirectory(), BepInExLoader.GUID, "Localized", "de.json"),
-                System.IO.Path.Combine(BepInExLoader.GetPluginRootDirectory(), BepInExLoader.GUID, "Localized", "en.json"),
-                System.IO.Path.Combine(BepInExLoader.GetPluginRootDirectory(), BepInExLoader.GUID, "Localized", "fr.json"),
-                System.IO.Path.Combine(BepInExLoader.GetPluginRootDirectory(), BepInExLoader.GUID, "Localized", "ja.json"),
-                System.IO.Path.Combine(BepInExLoader.GetPluginRootDirectory(), BepInExLoader.GUID, "Localized", "ko.json"),
+                Path.Combine(GetPluginRootDirectory(), GUID, "texts.ini"),
+                Path.Combine(GetPluginRootDirectory(), GUID, "Localized", "chs.json"),
+                Path.Combine(GetPluginRootDirectory(), GUID, "Localized", "cht.json"),
+                Path.Combine(GetPluginRootDirectory(), GUID, "Localized", "de.json"),
+                Path.Combine(GetPluginRootDirectory(), GUID, "Localized", "en.json"),
+                Path.Combine(GetPluginRootDirectory(), GUID, "Localized", "fr.json"),
+                Path.Combine(GetPluginRootDirectory(), GUID, "Localized", "ja.json"),
+                Path.Combine(GetPluginRootDirectory(), GUID, "Localized", "ko.json"),
             };
 
         [HarmonyPatch(typeof(CampMenuMain), nameof(CampMenuMain.StartCamp))]
@@ -134,8 +128,8 @@ internal class BepInExLoader : BasePlugin
             //BepInExLog.Log($"StartCampPostfix. activePage:{activePage} firstPage: {firstPage}");
         }
 
-        public delegate void OnCampPageChangedDelegate(CampPage page);
-        public static OnCampPageChangedDelegate OnCampPageChanged = null;
+        internal delegate void OnCampPageChangedDelegate(CampPage page);
+        internal static OnCampPageChangedDelegate OnCampPageChanged = null;
 
         //[HarmonyPatch(typeof(CampPageSwitcher), nameof(CampPageSwitcher.OpenPage), new Type[] { typeof(int) })]
         [HarmonyPatch(typeof(CampPageSwitcher), nameof(CampPageSwitcher.OpenPage), new Type[] { typeof(int) })]

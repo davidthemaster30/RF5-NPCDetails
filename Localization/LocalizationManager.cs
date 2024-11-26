@@ -1,29 +1,23 @@
-﻿using BepInEx;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace RF5.HisaCat.NPCDetails.Localization;
 
 internal static class LocalizationManager
 {
-    private static Dictionary<string, LocalizedString> dic = null;
+    private static Dictionary<string, LocalizedString>? dic = null;
 
-    public const string MainPath = "Localized";
-    public static string Load(string key) => Load(key, BootSystem.OptionData.SystemLanguage);
-    public static string Load(string key, BootOption.SystemLanguage lang) => Load(MainPath, key, lang);
-    public static string Load(string path, string key) => Load(path, key, BootSystem.OptionData.SystemLanguage);
-    public static string Load(string path, string key, BootOption.SystemLanguage lang)
+    internal const string MainPath = "Localized";
+    internal static string Load(string key) => Load(key, BootSystem.OptionData.SystemLanguage);
+    internal static string Load(string key, BootOption.SystemLanguage lang) => Load(MainPath, key, lang);
+    internal static string Load(string path, string key) => Load(path, key, BootSystem.OptionData.SystemLanguage);
+    internal static string Load(string path, string key, BootOption.SystemLanguage lang)
     {
-        if (dic is null)
-            dic = new Dictionary<string, LocalizedString>(StringComparer.OrdinalIgnoreCase);
+        dic ??= new Dictionary<string, LocalizedString>(StringComparer.OrdinalIgnoreCase);
 
-        if (dic.ContainsKey(path) == false)
+        if (!dic.ContainsKey(path))
+        {
             dic.Add(path, new LocalizedString(path));
+        }
 
         return dic[path].Load(key, lang);
     }
@@ -31,7 +25,7 @@ internal static class LocalizationManager
 
 internal class LocalizedString
 {
-    public static string GetLocaleStr(BootOption.SystemLanguage lang)
+    internal static string GetLocaleStr(BootOption.SystemLanguage lang)
     {
         switch (lang)
         {
@@ -53,55 +47,56 @@ internal class LocalizedString
                 return string.Empty;
         }
     }
-    public static void CreateTemplate()
+    internal static void CreateTemplate()
     {
         var data = new Dictionary<string, string>();
         for (int i = 0; i < 3; i++)
+        {
             data.Add($"key{i}", "text");
+        }
 
         var json = JsonSerializer.Serialize(data, new JsonSerializerOptions() { WriteIndented = true });
 
         for (var lang = BootOption.SystemLanguage.English; lang <= BootOption.SystemLanguage.Germen; lang++)
         {
             var path = System.IO.Path.Combine(BepInExLoader.GetPluginRootDirectory(), BepInExLoader.GUID, $"{GetLocaleStr(lang)}.json");
-            System.IO.File.WriteAllText(path, json);
+            File.WriteAllText(path, json);
         }
     }
 
-    public const BootOption.SystemLanguage FallbackLang = BootOption.SystemLanguage.English;
+    internal const BootOption.SystemLanguage FallbackLang = BootOption.SystemLanguage.English;
     private Dictionary<BootOption.SystemLanguage, Dictionary<string, string>> dic = null;
-    public readonly string Path = string.Empty;
-    public LocalizedString(string path)
+    internal readonly string Path = string.Empty;
+    internal LocalizedString(string path)
     {
-        this.Path = path;
-        this.dic = new Dictionary<BootOption.SystemLanguage, Dictionary<string, string>>();
+        Path = path;
+        dic = new Dictionary<BootOption.SystemLanguage, Dictionary<string, string>>();
     }
 
-    public string Load(string key) => Load(key, BootSystem.OptionData.SystemLanguage);
-    public string Load(string key, BootOption.SystemLanguage lang)
+    internal string Load(string key) => Load(key, BootSystem.OptionData.SystemLanguage);
+    internal string Load(string key, BootOption.SystemLanguage lang)
     {
-        if (this.dic.ContainsKey(lang) == false)
+        if (!dic.ContainsKey(lang))
         {
             //Load.
             var datas = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            var curPath = System.IO.Path.Combine(BepInExLoader.GetPluginRootDirectory(), BepInExLoader.GUID, this.Path, $"{GetLocaleStr(lang)}.json");
-            if (System.IO.File.Exists(curPath))
+            var curPath = System.IO.Path.Combine(BepInExLoader.GetPluginRootDirectory(), BepInExLoader.GUID, Path, $"{GetLocaleStr(lang)}.json");
+            if (File.Exists(curPath))
             {
-                var json = System.IO.File.ReadAllText(curPath);
+                var json = File.ReadAllText(curPath);
                 datas = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
             }
-            this.dic.Add(lang, datas);
+            dic.Add(lang, datas);
         }
 
-        if (this.dic[lang].ContainsKey(key))
-            return this.dic[lang][key];
+        if (dic[lang].ContainsKey(key))
+        {
+            return dic[lang][key];
+        }
         else
         {
             //Fallback
-            if (lang != FallbackLang)
-                return Load(key, FallbackLang);
-            else
-                return key;
+            return lang != FallbackLang ? Load(key, FallbackLang) : key;
         }
     }
 }

@@ -1,28 +1,23 @@
-﻿using BepInEx;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Il2CppInterop.Runtime;
+﻿using Il2CppInterop.Runtime;
 using UnityEngine;
 
 namespace RF5.HisaCat.NPCDetails;
 
 internal static class BundleLoader
 {
-    public static AssetBundle MainBundle { get; private set; }
+    internal static AssetBundle MainBundle { get; private set; }
 
-    public static bool LoadBundle()
+    internal static bool LoadBundle()
     {
         if (MainBundle is not null)
         {
             BepInExLog.LogDebug("[BundleLoader] Bundle already loaded");
             return true;
         }
-        var bundleDir = System.IO.Path.Combine(BepInExLoader.GetPluginRootDirectory(), BepInExLoader.GUID);
-        var mainBundlePath = System.IO.Path.Combine(bundleDir, "npcdetails.main.unity3d");
-        if (System.IO.File.Exists(mainBundlePath) == false)
+        
+        var bundleDir = Path.Combine(BepInExLoader.GetPluginRootDirectory(), BepInExLoader.GUID);
+        var mainBundlePath = Path.Combine(bundleDir, "npcdetails.main.unity3d");
+        if (!File.Exists(mainBundlePath))
         {
             BepInExLog.LogError($"[BundleLoader] Bundle missing. bundle must be placed at \"{mainBundlePath}\"");
             return false;
@@ -40,10 +35,10 @@ internal static class BundleLoader
         return true;
     }
 
-    public static T LoadIL2CPP<T>(this AssetBundle bundle, string name) where T : UnityEngine.Object
+    internal static T? LoadIL2CPP<T>(this AssetBundle bundle, string name) where T : UnityEngine.Object
     {
         var asset = bundle.LoadAsset_Internal(name, Il2CppType.Of<T>());
-        return asset is null ? null : asset.TryCast<T>();
+        return asset?.TryCast<T>();
     }
 }
 

@@ -1,44 +1,40 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
-using UnityEngine.UI;
-using RF5.HisaCat.NPCDetails.Utils;
-using RF5.HisaCat.NPCDetails.Localization;
-using BepInEx;
-
-namespace RF5.HisaCat.NPCDetails.NPCDetailWindow;
+﻿namespace RF5.HisaCat.NPCDetails.NPCDetailWindow;
 
 internal class NPCDetailWindowManager
 {
     private static NPCDetailWindowManager Instance;
-    public NPCDetailWindowManager()
+    internal NPCDetailWindowManager()
     {
         Instance = this;
     }
 
-    private static UIOnOffAnimate equipMenuItemDetail = null;
-    public static void TryAttachIfNotExist(FriendPageStatusDisp friendPageStatusDisp)
+    private static UIOnOffAnimate? equipMenuItemDetail = null;
+    internal static void TryAttachIfNotExist(FriendPageStatusDisp friendPageStatusDisp)
     {
         if (Attachment_LeftStatusPos.Instance is null)
+        {
             Attachment_LeftStatusPos.InstantiateAndAttach(friendPageStatusDisp);
+        }
 
         if (Attachment_RightStatusPos.Instance is null)
+        {
             Attachment_RightStatusPos.InstantiateAndAttach(friendPageStatusDisp);
+        }
     }
-    public static void TrySetNPCData(NpcData npcData)
+
+    internal static void TrySetNPCData(NpcData npcData)
     {
         Attachment_LeftStatusPos.Instance?.SetNPCData(npcData);
         Attachment_RightStatusPos.Instance?.SetNPCData(npcData);
     }
-    public static void TrySetMonsterData(FriendMonsterStatusData friendMonsterData, MonsterDataTable monsterData)
+
+    internal static void TrySetMonsterData(FriendMonsterStatusData friendMonsterData, MonsterDataTable monsterData)
     {
         Attachment_LeftStatusPos.Instance?.SetMonsterData(friendMonsterData, monsterData);
         Attachment_RightStatusPos.Instance?.SetMonsterData(friendMonsterData, monsterData);
     }
-    public static void TrySetShown(bool isShown)
+
+    internal static void TrySetShown(bool isShown)
     {
         Attachment_LeftStatusPos.Instance?.SetShown(isShown);
         Attachment_RightStatusPos.Instance?.SetShown(isShown);
