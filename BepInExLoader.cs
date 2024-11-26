@@ -15,16 +15,9 @@ public class BepInExLoader : BasePlugin
         GUID = "RF5." + AUTHOR + "." + MODNAME,
         VERSION = "1.4.0";
 
-    internal static BepInEx.Logging.ManualLogSource log;
-
     internal static string GetPluginRootDirectory()
     {
         return Path.GetDirectoryName(IL2CPPChainloader.Instance.Plugins[GUID].Location);
-    }
-
-    internal BepInExLoader()
-    {
-        log = Log;
     }
 
     public override void Load()
@@ -43,6 +36,9 @@ public class BepInExLoader : BasePlugin
 
         try
         {
+            //Config
+            BepInExLog.EnableLogging = Config.Bind("General", nameof(BepInExLog.EnableLogging), true, "Set to true to enable logging of changed values by the mod.");
+
             //Patches
             Harmony.CreateAndPatchAll(typeof(RF5FontHelper.FontLoader));
             Harmony.CreateAndPatchAll(typeof(SVPatcher));
@@ -69,20 +65,6 @@ public class BepInExLoader : BasePlugin
                 BundleLoader.LoadBundle();
         }
     }
-
-    //[HarmonyPatch]
-    //[Obsolete("This is TEST code for tame always success")]
-    //internal static class CalcStatusPatcher
-    //{
-    //    //For test, tame always success
-    //    [HarmonyPatch(typeof(Calc.CalcStatus), nameof(Calc.CalcStatus.CalcTame))]
-    //    [HarmonyPrefix]
-    //    private static bool CalcTamePrefix(ref bool __result, MonsterControllerBase monster)
-    //    {
-    //        __result = true;
-    //        return false; //return false to skip
-    //    }
-    //}
 
     [HarmonyPatch]
     internal static class UIPatcher
