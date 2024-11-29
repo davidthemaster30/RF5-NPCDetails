@@ -1,4 +1,6 @@
-﻿namespace RF5.HisaCat.NPCDetails.Utils;
+﻿using RF5.HisaCat.NPCDetails.NPCDetailWindow;
+
+namespace RF5.HisaCat.NPCDetails.Utils;
 
 internal static class RF5DataExtension
 {
@@ -24,7 +26,7 @@ internal static class RF5DataExtension
 
     internal static List<ItemDataTable> ItemIdArrayToItemDataTables(IEnumerable<int> itemIds)
     {
-        var items = new List<ItemDataTable>();
+        List<ItemDataTable> items = [];
         if (itemIds is null)
         {
             return items;
@@ -43,9 +45,9 @@ internal static class RF5DataExtension
         return items;
     }
 
-    internal static List<ItemDataTable> RemoveTrashItems(List<ItemDataTable> items)
+    internal static IEnumerable<ItemDataTable> RemoveTrashItems(IEnumerable<ItemDataTable> items)
     {
-        return items.Where(x => x.ItemType != ItemType.Trash).ToList();
+        return items.Where(x => x.ItemType != ItemType.Trash);
     }
 
     internal static List<ItemDataTable> GetVeryFavoriteItemDataTables(this NpcData npcData)
@@ -73,45 +75,37 @@ internal static class RF5DataExtension
             return [];
         }
 
-        if (exceptAlmostHates)
-        {
-            return ItemIdArrayToItemDataTables(npcData.statusData.NotFavoriteItem).Where(x =>
-            {
-                var itemID = ItemDataTable.GetItemID(x.ItemIndex);
-                switch (itemID)
-                {
-                    case ItemID.Item_Buttaix: //물체 X(2011)
-                    case ItemID.Item_Kuzutetsu: //고철(2151)
-                    case ItemID.Item_Zasso: //잡초(195)
-                    case ItemID.Item_Karekusa: //마른 풀(196)
-                    case ItemID.Item_Shippaisaku: //실패작(200)
-                    case ItemID.Item_Choshippaisaku: //완전 실패작(201)
-                    case ItemID.Item_Ishi: //돌(1500)
-                    case ItemID.Item_Eda: //나뭇가지(1501)
-                    case ItemID.Item_Akikan: //빈 캔(1900)
-                    case ItemID.Item_Nagagutsu: //장화(1901)
-                    case ItemID.Item_Reanaakikan: //희귀한 빈 캔(1902)
-                        return false;
-                    default:
-                        return true;
-                }
-            }).ToList();
-        }
-        else
+        if (!exceptAlmostHates)
         {
             return ItemIdArrayToItemDataTables(npcData.statusData.NotFavoriteItem);
         }
+
+        return ItemIdArrayToItemDataTables(npcData.statusData.NotFavoriteItem).Where(x =>
+        {
+            switch (ItemDataTable.GetItemID(x.ItemIndex))
+            {
+                case ItemID.Item_Buttaix: //물체 X(2011)
+                case ItemID.Item_Kuzutetsu: //고철(2151)
+                case ItemID.Item_Zasso: //잡초(195)
+                case ItemID.Item_Karekusa: //마른 풀(196)
+                case ItemID.Item_Shippaisaku: //실패작(200)
+                case ItemID.Item_Choshippaisaku: //완전 실패작(201)
+                case ItemID.Item_Ishi: //돌(1500)
+                case ItemID.Item_Eda: //나뭇가지(1501)
+                case ItemID.Item_Akikan: //빈 캔(1900)
+                case ItemID.Item_Nagagutsu: //장화(1901)
+                case ItemID.Item_Reanaakikan: //희귀한 빈 캔(1902)
+                    return false;
+                default:
+                    return true;
+            }
+        }).ToList();
     }
 
     internal static List<ItemDataTable> GetNotFavoriteBadlyItemDataTables(this NpcData npcData)
     {
         //Hates
-        if (npcData?.statusData is null)
-        {
-            return new List<ItemDataTable>();
-        }
-
-        return ItemIdArrayToItemDataTables(npcData.statusData.NotFavoriteBadlyItem);
+        return npcData?.statusData is null ? [] : ItemIdArrayToItemDataTables(npcData.statusData.NotFavoriteBadlyItem);
     }
 
     internal static bool TryFindNPCBirthday(this NpcData npcData, out Define.Season season, out int day)
@@ -123,7 +117,7 @@ internal static class RF5DataExtension
     {
         for (season = Define.Season.Spring; season <= Define.Season.Winter; season++)
         {
-            for (day = 1; day <= 30; day++)
+            for (day = 1; day <= RF5CalendarConstants.DaysInMonth; day++)
             {
                 if (NpcDataManager.Instance.LovePointManager.IsBirthDayByDate(npcID, season, day))
                 {
@@ -132,6 +126,7 @@ internal static class RF5DataExtension
             }
         }
 
+        BepInExLog.LogError($"Could not find NPC {npcID} BirthDay!");
         season = Define.Season.None;
         day = -1;
         return false;
@@ -161,90 +156,53 @@ internal static class RF5DataExtension
         return data;
     }
 
-    internal static string GetFarmName(Farm.FarmManager.FARM_ID farmId)
+    internal static string GetFarmName(Farm.FarmManager.FARM_ID farmId) => farmId switch
     {
-        switch (farmId)
-        {
-            case Farm.FarmManager.FARM_ID.RF4_FREEFARM_ID_Soil:
-                return SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_FarmDragon_01_soil);
-            case Farm.FarmManager.FARM_ID.RF4_FREEFARM_ID_Fire:
-                return SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_FarmDragon_02_fire);
-            case Farm.FarmManager.FARM_ID.RF4_FREEFARM_ID_Ice:
-                return SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_FarmDragon_03_ice);
-            case Farm.FarmManager.FARM_ID.RF4_FREEFARM_ID_Wind:
-                return SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_FarmDragon_04_wind);
-            case Farm.FarmManager.FARM_ID.RF4_FREEFARM_ID_Ground:
-                return SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_FarmDragon_05_ground);
-            //Unknowns
-            case Farm.FarmManager.FARM_ID.RF4_FREEFARM_ID_Village:
-                return SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_FIELD_Town);
-            case Farm.FarmManager.FARM_ID.RF4_FREEFARM_ID_Vision:
-            case Farm.FarmManager.FARM_ID.RF4_FREEFARM_ID_MAX:
-            default:
-                return farmId.ToString();
-        }
-    }
+        Farm.FarmManager.FARM_ID.RF4_FREEFARM_ID_Soil => SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_FarmDragon_01_soil),
+        Farm.FarmManager.FARM_ID.RF4_FREEFARM_ID_Fire => SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_FarmDragon_02_fire),
+        Farm.FarmManager.FARM_ID.RF4_FREEFARM_ID_Ice => SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_FarmDragon_03_ice),
+        Farm.FarmManager.FARM_ID.RF4_FREEFARM_ID_Wind => SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_FarmDragon_04_wind),
+        Farm.FarmManager.FARM_ID.RF4_FREEFARM_ID_Ground => SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_FarmDragon_05_ground),
+        //Unknowns
+        Farm.FarmManager.FARM_ID.RF4_FREEFARM_ID_Village => SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_FIELD_Town),
+        _ => farmId.ToString(),
+    };
 
     internal static string GetMonsterName(MonsterID monsterId)
     {
         return SV.UIRes.MonsterName(monsterId);
     }
 
-    internal static string GetLocalizedPlaceName(Define.Place place)
+    internal static string GetLocalizedPlaceName(Define.Place place) => place switch
     {
-        switch (place)
-        {
-            case Define.Place.Police:
-                return SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_01_Lv1_police);
-            case Define.Place.Hospital:
-                return SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_02_Hospital);
-            case Define.Place.BlackSmith:
-                return SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_03_Blacksmith);
-            case Define.Place.Shop:
-                return SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_04_Shop);
-            case Define.Place.Restaurant:
-                return SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_05_Restaurant_2);
-            case Define.Place.Hotel:
-                return SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_06_Hotel);
-            case Define.Place.Bakery:
-                return SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_07_Bakery);
-            case Define.Place.Carpenter:
-                return SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_08_Carpenter);
-            case Define.Place.Detective:
-                return SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_09_Detective);
-            case Define.Place.CrystalShop:
-                return SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_10_CrystalShop);
-            case Define.Place.Monsterhut:
-                return SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_11_Monsterhut);
-            case Define.Place.FlowerShop:
-                return SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_13_FlowerShop);
-            case Define.Place.Relics:
-                return SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_14_Relics);
-            case Define.Place.Home1:
-                return SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_17_home01);
-            case Define.Place.Home2:
-                return SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_18_home02);
-            case Define.Place.Home3:
-                return SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_19_home03);
-            case Define.Place.Home4:
-                return SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_20_home04);
+        Define.Place.Police => SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_01_Lv1_police),
+        Define.Place.Hospital => SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_02_Hospital),
+        Define.Place.BlackSmith => SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_03_Blacksmith),
+        Define.Place.Shop => SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_04_Shop),
+        Define.Place.Restaurant => SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_05_Restaurant_2),
+        Define.Place.Hotel => SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_06_Hotel),
+        Define.Place.Bakery => SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_07_Bakery),
+        Define.Place.Carpenter => SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_08_Carpenter),
+        Define.Place.Detective => SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_09_Detective),
+        Define.Place.CrystalShop => SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_10_CrystalShop),
+        Define.Place.Monsterhut => SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_11_Monsterhut),
+        Define.Place.FlowerShop => SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_13_FlowerShop),
+        Define.Place.Relics => SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_14_Relics),
+        Define.Place.Home1 => SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_17_home01),
+        Define.Place.Home2 => SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_18_home02),
+        Define.Place.Home3 => SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_19_home03),
+        Define.Place.Home4 => SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_20_home04),
 
-            #region Unknowns
-            case Define.Place.FreeHome:
-                return SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_21_home_empty);
-            case Define.Place.Beach:
-                return SV.UIRes.GetSystemText(UITextDic.DICID.NIGHT_BEACH);
-            case Define.Place.Lake:
-            case Define.Place.Dungeon1:
-            case Define.Place.BigTreePlaza:
-            case Define.Place.Bridge:
-            case Define.Place.Field:
-                return $"{SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_FIELD_Town)} ({place.ToString()})";
-            case Define.Place.None:
-            default:
-                return $"({place.ToString()})";
-                #endregion Unknowns
-        }
-    }
+        #region Unknowns
+        Define.Place.FreeHome => SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_SCENE_RF5Room_21_home_empty),
+        Define.Place.Beach => SV.UIRes.GetSystemText(UITextDic.DICID.NIGHT_BEACH),
+        var x when x == Define.Place.Lake ||
+                    x == Define.Place.Dungeon1 ||
+                    x == Define.Place.BigTreePlaza ||
+                    x == Define.Place.Bridge ||
+                    x == Define.Place.Field => $"{SV.UIRes.GetSystemText(UITextDic.DICID.MAPNAME_FIELD_Town)} ({place})",
+        _ => place.ToString()
+        #endregion Unknowns
+    };
 }
 

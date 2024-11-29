@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using RF5.HisaCat.NPCDetails.Utils;
 using RF5.HisaCat.NPCDetails.Localization;
+using BepInEx.Configuration;
 
 namespace RF5.HisaCat.NPCDetails.NPCDetailWindow;
 
@@ -12,12 +13,49 @@ internal class Attachment_RightStatusPos : MonoBehaviour
 {
     internal static Attachment_RightStatusPos? Instance { get; private set; }
 
-    internal const string PrefabPathFromBundle = "[RF5.HisaCat.NPCDetails]RightStatusPos";
+    private const string RightSection = "RightSection";
+    private static ConfigEntry<bool> ShowBirthday;
+    private static ConfigEntry<bool> ShowLikes;
+    private static ConfigEntry<bool> ShowLoves;
+    private static ConfigEntry<bool> ShowHates;
+    private static ConfigEntry<bool> ShowTamingItems;
+    private static ConfigEntry<bool> ShowDropItems;
+    private static ConfigEntry<bool> ShowProduceItems;
 
-    internal const string AttachPathBasedFriendPageStatusDisp = "StatusObj/FriendsStatus/RightStatusPos";
-    internal const string EquipMenuItemDetailWindowPath = "StatusObj/FriendsStatus/EquipMenuItemDetail/OnOffWindows";
+    internal static void LoadConfig(ConfigFile Config)
+    {
+        ShowBirthday = Config.Bind(RightSection, nameof(ShowBirthday), true, "Set to true to enable showing the NPC's Birthday.");
+        ShowBirthday.SettingChanged += ResetNPCTextCache;
+        ShowLikes = Config.Bind(RightSection, nameof(ShowLikes), true, "Set to true to enable showing the NPC's liked items.");
+        ShowLikes.SettingChanged += ResetNPCTextCache;
+        ShowLoves = Config.Bind(RightSection, nameof(ShowLoves), true, "Set to true to enable showing the NPC's loved items.");
+        ShowLoves.SettingChanged += ResetNPCTextCache;
+        ShowHates = Config.Bind(RightSection, nameof(ShowHates), true, "Set to true to enable showing the NPC's hated items.");
+        ShowHates.SettingChanged += ResetNPCTextCache;
 
-    internal static class TransformPaths
+        ShowTamingItems = Config.Bind(RightSection, nameof(ShowTamingItems), true, "Set to true to enable showing a monster's liked items for taming.");
+        ShowTamingItems.SettingChanged += ResetMonsterTextCache;
+        ShowDropItems = Config.Bind(RightSection, nameof(ShowDropItems), true, "Set to true to enable showing a monster's drop items.");
+        ShowDropItems.SettingChanged += ResetMonsterTextCache;
+        ShowProduceItems = Config.Bind(RightSection, nameof(ShowProduceItems), true, "Set to true to enable showing a monster's produced items.");
+        ShowProduceItems.SettingChanged += ResetMonsterTextCache;
+    }
+
+    internal static void ResetNPCTextCache(object sender, EventArgs e)
+    {
+        detailTextNPCCache?.Clear();
+    }
+
+    internal static void ResetMonsterTextCache(object sender, EventArgs e)
+    {
+        detailTextMonsterCache?.Clear();
+    }
+
+    private const string PrefabPathFromBundle = "[RF5.HisaCat.NPCDetails]RightStatusPos";
+    private const string AttachPathBasedFriendPageStatusDisp = "StatusObj/FriendsStatus/RightStatusPos";
+    private const string EquipMenuItemDetailWindowPath = "StatusObj/FriendsStatus/EquipMenuItemDetail/OnOffWindows";
+
+    private static class TransformPaths
     {
         internal const string Window = "Window";
 
@@ -28,59 +66,52 @@ internal class Attachment_RightStatusPos : MonoBehaviour
         internal const string Monster_DetailText = "TextArea/Mask/Text";
     }
 
-    private GameObject m_Window_GO = null;
+    private GameObject? m_Window_GO = null;
+    private GameObject? m_Status_NPC_GO = null;
+    private GameObject? m_Status_Monster_GO = null;
 
-    internal GameObject m_Status_NPC_GO = null;
-    internal GameObject m_Status_Monster_GO = null;
+    private Text? m_NPC_DetailText = null;
+    private Text? m_Monster_DetailText = null;
 
-    private Text m_NPC_DetailText = null;
-    private Text m_Monster_DetailText = null;
-    internal bool PreloadPathes()
+    private static Dictionary<Define.ActorID, string>? detailTextNPCCache = null;
+    private static Dictionary<MonsterID, string>? detailTextMonsterCache = null;
+    private UIOnOffAnimate equipMenuItemDetail = null;
+
+    private bool PreloadPathes()
     {
+        if (!this.TryFindGameObject(TransformPaths.Window, out m_Window_GO))
         {
-            GameObject root;
-            if (!this.TryFindGameObject(TransformPaths.Window, out root))
-            {
-                return false;
-            }
-
-            m_Window_GO = root;
-
-            {
-                GameObject parent;
-                if (!root.TryFindGameObject(TransformPaths.Status_NPC, out parent))
-                {
-                    return false;
-                }
-
-                m_Status_NPC_GO = parent;
-                if (!parent.TryFindComponent<Text>(TransformPaths.NPC_DetailText, out m_NPC_DetailText))
-                {
-                    return false;
-                }
-            }
-            {
-                GameObject parent;
-                if (!root.TryFindGameObject(TransformPaths.Status_Monster, out parent))
-                {
-                    return false;
-                }
-
-                m_Status_Monster_GO = parent;
-                if (!parent.TryFindComponent<Text>(TransformPaths.Monster_DetailText, out m_Monster_DetailText))
-                {
-                    return false;
-                }
-            }
+            return false;
         }
+
+        if (!m_Window_GO.TryFindGameObject(TransformPaths.Status_NPC, out m_Status_NPC_GO))
+        {
+            return false;
+        }
+
+        if (!m_Status_NPC_GO.TryFindComponent<Text>(TransformPaths.NPC_DetailText, out m_NPC_DetailText))
+        {
+            return false;
+        }
+
+        if (!m_Window_GO.TryFindGameObject(TransformPaths.Status_Monster, out m_Status_Monster_GO))
+        {
+            return false;
+        }
+
+        if (!m_Status_Monster_GO.TryFindComponent<Text>(TransformPaths.Monster_DetailText, out m_Monster_DetailText))
+        {
+            return false;
+        }
+
         return true;
     }
 
-    private FriendPageStatusDisp friendPageStatusDisp = null;
-    private UIOnOffAnimate equipMenuItemDetail = null;
-    internal bool Init(FriendPageStatusDisp friendPageStatusDisp, UIOnOffAnimate equipMenuItemDetail)
+    internal bool Init(UIOnOffAnimate equipMenuItemDetail)
     {
-        this.friendPageStatusDisp = friendPageStatusDisp;
+        detailTextNPCCache ??= [];
+        detailTextMonsterCache ??= [];
+
         this.equipMenuItemDetail = equipMenuItemDetail;
         return PreloadPathes();
     }
@@ -123,7 +154,7 @@ internal class Attachment_RightStatusPos : MonoBehaviour
         RF5FontHelper.SetFontGlobal(InstanceGO);
 
         Instance = InstanceGO.AddComponent<Attachment_RightStatusPos>();
-        if (!Instance.Init(friendPageStatusDisp, equipMenuItemDetail))
+        if (!Instance.Init(equipMenuItemDetail))
         {
             BepInExLog.LogError("[Attachment_RightStatusPos] InstantiateAndAttach: Initialize failed");
             Instance = null;
@@ -145,85 +176,134 @@ internal class Attachment_RightStatusPos : MonoBehaviour
         return gameObject.activeSelf;
     }
 
+    private void ResetShown()
+    {
+        m_Window_GO?.SetActive(false);
+        m_Status_NPC_GO?.SetActive(false);
+        m_Status_Monster_GO?.SetActive(false);
+    }
+
     internal void SetNPCData(NpcData npcData)
     {
+        ResetShown();
+
+        if ((!ShowBirthday.Value && !ShowLikes.Value && !ShowLoves.Value && !ShowHates.Value) || npcData is null)
+        {
+            return;
+        }
+
         m_Status_NPC_GO.SetActive(true);
-        m_Status_Monster_GO.SetActive(false);
 
         m_NPC_DetailText.text = GetDetailText(npcData);
     }
 
-    private static Dictionary<Define.ActorID, string> detailTextDic = null;
     private static string GetDetailText(NpcData npcData)
     {
-        detailTextDic ??= new Dictionary<Define.ActorID, string>();
-
-        if (!detailTextDic.ContainsKey(npcData.actorId))
+        if (detailTextNPCCache.TryGetValue(npcData.actorId, out var detailText))
         {
-            var text_Birthday = LocalizationManager.Load("npc.detail.title.birthday");
-            var text_Loves = LocalizationManager.Load("npc.detail.title.loves");
-            var text_Likes = LocalizationManager.Load("npc.detail.title.likes");
-            var text_Dislikes = LocalizationManager.Load("npc.detail.title.dislikes");
-            var text_Hates = LocalizationManager.Load("npc.detail.title.hates");
-
-            var text = string.Empty;
-
-            Define.Season birthday_season;
-            int birthday_day;
-            if (npcData.TryFindNPCBirthday(out birthday_season, out birthday_day))
-            {
-                var birthdayText = string.Empty;
-                switch (birthday_season)
-                {
-                    case Define.Season.Spring:
-                        birthdayText = $"{SV.UIRes.GetSystemText(UITextDic.DICID.HUDCLOCK_SPRING)} {birthday_day}";
-                        break;
-                    case Define.Season.Summer:
-                        birthdayText = $"{SV.UIRes.GetSystemText(UITextDic.DICID.HUDCLOCK_SUMMER)} {birthday_day}";
-                        break;
-                    case Define.Season.Autumn:
-                        birthdayText = $"{SV.UIRes.GetSystemText(UITextDic.DICID.HUDCLOCK_AUTUMN)} {birthday_day}";
-                        break;
-                    case Define.Season.Winter:
-                        birthdayText = $"{SV.UIRes.GetSystemText(UITextDic.DICID.HUDCLOCK_WINTER)} {birthday_day}";
-                        break;
-                }
-                text += $"<size=25>{text_Birthday}:</size> {birthdayText}\r\n\r\n";
-            }
-
-            text += $"<size=25>{text_Loves}</size>\r\n{string.Join(", ", npcData.GetVeryFavoriteItemDataTables().Select(x => $"{x.GetItemName()}"))}\r\n\r\n";
-            text += $"<size=25>{text_Likes}</size>\r\n{string.Join(", ", npcData.GetFavoriteItemDataTables().Select(x => $"{x.GetItemName()}"))}\r\n\r\n";
-            text += $"<size=25>{text_Dislikes}</size>\r\n{string.Join(", ", npcData.GetNotFavoriteItemDataTables().Select(x => $"{x.GetItemName()}"))}\r\n\r\n";
-            text += $"<size=25>{text_Hates}</size>\r\n{string.Join(", ", npcData.GetNotFavoriteBadlyItemDataTables().Select(x => $"{x.GetItemName()}"))}";
-
-            //https://www.nexusmods.com/runefactory5/mods/34?tab=bugs
-            //Hotfix for 'Text cut off' bugs
-            text += "\r\n";
-
-            detailTextDic.Add(npcData.actorId, text);
+            return detailText;
         }
-        return detailTextDic[npcData.actorId];
-    }
 
-    internal void SetMonsterData(FriendMonsterStatusData friendMonsterData, MonsterDataTable monsterData)
-    {
-        m_Status_NPC_GO.SetActive(false);
-        m_Status_Monster_GO.SetActive(true);
+        var text_Birthday = LocalizationManager.Load("npc.detail.title.birthday");
+        var text_Loves = LocalizationManager.Load("npc.detail.title.loves");
+        var text_Likes = LocalizationManager.Load("npc.detail.title.likes");
+        var text_Dislikes = LocalizationManager.Load("npc.detail.title.dislikes");
+        var text_Hates = LocalizationManager.Load("npc.detail.title.hates");
 
         var text = string.Empty;
 
-        text += $"<size=25>{LocalizationManager.Load("monster.detail.title.origin_name")}:</size> {RF5DataExtension.GetMonsterName(monsterData.MonsterId)}\r\n\r\n";
-        text += $"<size=25>{LocalizationManager.Load("monster.detail.title.favorites")}</size>\r\n{string.Join(", ", monsterData.GetFavoriteItemDataTables().Select(x => $"{x.GetItemName()}"))}\r\n\r\n";
-        //var dropItemData = MonsterDropItemDataTable.GetDataTable(monsterData.DropItemDataID);
-        //if(dropItemData is not null)
-        //{
-        //    text += $"<size=25>{LocalizationManager.Load("")}</size>\r\n{string.Join(", ", RF5DataExtension.ItemIdArrayToItemDataTables(dropItemData.DropItemParamList.ToArray().Select(x => x.ItemID)).Select(x => $"{x.GetItemName()}"))}\r\n\r\n";
-        //    text += $"<size=25>{LocalizationManager.Load("")}</size>\r\n{string.Join(", ", RF5DataExtension.ItemIdArrayToItemDataTables(dropItemData.BonusDropItemParamList.ToArray().Select(x => x.ItemID)).Select(x => $"{x.GetItemName()}"))}\r\n\r\n";
-        //    text += $"<size=25>{LocalizationManager.Load("")}</size>\r\n{string.Join(", ", RF5DataExtension.ItemIdArrayToItemDataTables(dropItemData.HandcuffsDropItemParamList.ToArray().Select(x => x.ItemID)).Select(x => $"{x.GetItemName()}"))}\r\n\r\n";
-        //}
+        if (npcData.TryFindNPCBirthday(out Define.Season birthday_season, out int birthday_day))
+        {
+            var birthdayText = birthday_season switch
+            {
+                Define.Season.Spring => $"{SV.UIRes.GetSystemText(UITextDic.DICID.HUDCLOCK_SPRING)} {birthday_day}",
+                Define.Season.Summer => $"{SV.UIRes.GetSystemText(UITextDic.DICID.HUDCLOCK_SUMMER)} {birthday_day}",
+                Define.Season.Autumn => $"{SV.UIRes.GetSystemText(UITextDic.DICID.HUDCLOCK_AUTUMN)} {birthday_day}",
+                Define.Season.Winter => $"{SV.UIRes.GetSystemText(UITextDic.DICID.HUDCLOCK_WINTER)} {birthday_day}",
+                _ => string.Empty
+            };
+            text += $"<size=25>{text_Birthday}:</size> {birthdayText}{Environment.NewLine}{Environment.NewLine}";
+        }
 
-        text += "\r\n";
-        m_Monster_DetailText.text = text;
+        text += $"<size=25>{text_Loves}</size>{Environment.NewLine}{string.Join(", ", npcData.GetVeryFavoriteItemDataTables().Select(x => $"{x.GetItemName()}"))}{Environment.NewLine}{Environment.NewLine}";
+        text += $"<size=25>{text_Likes}</size>{Environment.NewLine}{string.Join(", ", npcData.GetFavoriteItemDataTables().Select(x => $"{x.GetItemName()}"))}{Environment.NewLine}{Environment.NewLine}";
+        text += $"<size=25>{text_Dislikes}</size>{Environment.NewLine}{string.Join(", ", npcData.GetNotFavoriteItemDataTables().Select(x => $"{x.GetItemName()}"))}{Environment.NewLine}{Environment.NewLine}";
+        text += $"<size=25>{text_Hates}</size>{Environment.NewLine}{string.Join(", ", npcData.GetNotFavoriteBadlyItemDataTables().Select(x => $"{x.GetItemName()}"))}{Environment.NewLine}";
+
+        detailTextNPCCache.Add(npcData.actorId, text);
+        return text;
+    }
+
+    internal void SetMonsterData(MonsterDataTable monsterData)
+    {
+        ResetShown();
+
+        if ((!ShowTamingItems.Value && !ShowDropItems.Value) || monsterData is null)
+        {
+            return;
+        }
+
+        m_Status_Monster_GO.SetActive(true);
+
+        m_Monster_DetailText.text = GetDetailText(monsterData);
+    }
+
+    private static string GetDetailText(MonsterDataTable monsterData)
+    {
+        if (detailTextMonsterCache.TryGetValue(monsterData.MonsterId, out var detailText))
+        {
+            return detailText;
+        }
+
+        var text = string.Empty;
+
+        text += $"<size=25>{LocalizationManager.Load("monster.detail.title.origin_name")}:</size> {RF5DataExtension.GetMonsterName(monsterData.MonsterId)}{Environment.NewLine}{Environment.NewLine}";
+
+        if (ShowTamingItems.Value)
+        {
+            text += $"<size=25>{LocalizationManager.Load("monster.detail.title.favorites")}</size>{Environment.NewLine}{string.Join(", ", monsterData.GetFavoriteItemDataTables().Select(x => $"{x.GetItemName()}"))}{Environment.NewLine}{Environment.NewLine}";
+        }
+
+        if (ShowProduceItems.Value && monsterData.YieldItemIDArray.Count > 0)
+        {
+            text += $"<size=25>Monster Produce</size>{Environment.NewLine}{string.Join(", ", RF5DataExtension.ItemIdArrayToItemDataTables(monsterData.YieldItemIDArray.ToArray()).Select(x => $"{x.GetItemName()}"))}{Environment.NewLine}{Environment.NewLine}";
+        }
+
+        if (ShowDropItems.Value)
+        {
+            var dropItemData = MonsterDropItemDataTable.GetDataTable(monsterData.DropItemDataID);
+            if (dropItemData is not null)
+            {
+                if (dropItemData.DropItemParamList.Count > 0)
+                {
+                    text += $"<size=25>Monster Drops</size>{Environment.NewLine}{GetNameAndDropRate(dropItemData.DropItemParamList.ToArray())}{Environment.NewLine}{Environment.NewLine}";
+                }
+
+                if (dropItemData.BonusDropItemParamList.Count > 0)
+                {
+                    text += $"<size=25>Monster Bonus Drops</size>{Environment.NewLine}{GetNameAndDropRate(dropItemData.BonusDropItemParamList.ToArray())}{Environment.NewLine}{Environment.NewLine}";
+                }
+
+                if (dropItemData.HandcuffsDropItemParamList.Count > 0)
+                {
+                    text += $"<size=25>Monster Seal Drops</size>{Environment.NewLine}{GetNameAndDropRate(dropItemData.HandcuffsDropItemParamList.ToArray())}{Environment.NewLine}{Environment.NewLine}";
+                }
+            }
+        }
+
+        detailTextMonsterCache.Add(monsterData.MonsterId, text);
+        return text;
+    }
+
+    internal static string GetNameAndDropRate(IEnumerable<DropItemParam> items)
+    {
+        var text = string.Empty;
+        if (items.Any())
+        {
+            text = $"{string.Join(", ", items.Select(x => $"{ItemDataTable.GetDataTable(x.ItemID).GetItemName()} ({string.Format("{0:F}", x.DropPercent / 10.0)}%)"))}";
+        }
+
+        return text;
     }
 
     private void Update()

@@ -29,8 +29,8 @@ internal class NPCDetailWindowManager
 
     internal static void TrySetMonsterData(FriendMonsterStatusData friendMonsterData, MonsterDataTable monsterData)
     {
-        Attachment_LeftStatusPos.Instance?.SetMonsterData(friendMonsterData, monsterData);
-        Attachment_RightStatusPos.Instance?.SetMonsterData(friendMonsterData, monsterData);
+        Attachment_LeftStatusPos.Instance?.SetMonsterData(friendMonsterData);
+        Attachment_RightStatusPos.Instance?.SetMonsterData(monsterData);
     }
 
     internal static void TrySetShown(bool isShown)

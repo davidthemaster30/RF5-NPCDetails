@@ -37,7 +37,7 @@ internal static class BundleLoader
 
     internal static T? LoadIL2CPP<T>(this AssetBundle bundle, string name) where T : UnityEngine.Object
     {
-        var asset = bundle.LoadAsset_Internal(name, Il2CppType.Of<T>());
+        var asset = bundle?.LoadAsset_Internal(name, Il2CppType.Of<T>());
         return asset?.TryCast<T>();
     }
 }

@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using RF5.HisaCat.NPCDetails.Utils;
 using RF5.HisaCat.NPCDetails.Localization;
+using BepInEx.Configuration;
 
 namespace RF5.HisaCat.NPCDetails.NPCDetailWindow;
 
@@ -12,12 +13,28 @@ internal class Attachment_LeftStatusPos : MonoBehaviour
 {
     internal static Attachment_LeftStatusPos? Instance { get; private set; }
 
-    internal const string PrefabPathFromBundle = "[RF5.HisaCat.NPCDetails]LeftStatusPos";
+    private const string LeftSection = "LeftSection";
+    private static ConfigEntry<bool> ShowBirthdayTip;
+    private static ConfigEntry<bool> ShowTalkedTip;
+    private static ConfigEntry<bool> ShowNPCGiftDeliveredTip;
+    private static ConfigEntry<bool> ShowMonsterGiftDeliveredTip;
+    private static ConfigEntry<bool> ShowMonsterBrushedTip;
+    private static ConfigEntry<bool> ShowMonsterHelpingTip;
 
-    internal const string AttachPathBasedFriendPageStatusDisp = "StatusObj/FriendsStatus/LeftStatusPos";
-    private const int DaysInMonth = 30;
+    internal static void LoadConfig(ConfigFile Config)
+    {
+        ShowBirthdayTip = Config.Bind(LeftSection, nameof(ShowBirthdayTip), true, "Set to true to enable showing the NPC's Birthday tip.");
+        ShowTalkedTip = Config.Bind(LeftSection, nameof(ShowTalkedTip), true, "Set to true to enable showing if the NPC was talked to tip.");
+        ShowNPCGiftDeliveredTip = Config.Bind(LeftSection, nameof(ShowNPCGiftDeliveredTip), true, "Set to true to enable if the NPC was gifted tip.");
+        ShowMonsterGiftDeliveredTip = Config.Bind(LeftSection, nameof(ShowMonsterGiftDeliveredTip), true, "Set to true to enable showing if a monster was gifted.");
+        ShowMonsterBrushedTip = Config.Bind(LeftSection, nameof(ShowMonsterBrushedTip), true, "Set to true to enable showing if a monster was brushed.");
+        ShowMonsterHelpingTip = Config.Bind(LeftSection, nameof(ShowMonsterHelpingTip), true, "Set to true to enable showing if and where a monster is helping on the farm.");
+    }
 
-    internal static class TransformPaths
+    private const string PrefabPathFromBundle = "[RF5.HisaCat.NPCDetails]LeftStatusPos";
+    private const string AttachPathBasedFriendPageStatusDisp = "StatusObj/FriendsStatus/LeftStatusPos";
+
+    private static class TransformPaths
     {
         internal const string Status_NPC = "RF5ContentsArea/Status_NPC";
         internal const string NPC_Tips_TodayTalked = "TipsArea/Tips_TodayTalked";
@@ -51,195 +68,183 @@ internal class Attachment_LeftStatusPos : MonoBehaviour
     }
 
 
-    internal GameObject m_Status_NPC_GO = null;
-    internal GameObject m_Status_Monster_GO = null;
+    private GameObject? m_Status_NPC_GO = null;
+    private GameObject? m_Status_Monster_GO = null;
 
-    internal GameObject m_NPC_Tips_TodayTalked_GO = null;
-    internal Text m_NPC_Tips_TodayTalked_Text = null;
-    internal GameObject m_NPC_Tips_TodayTalked_Checked = null;
+    private GameObject? m_NPC_Tips_TodayTalked_GO = null;
+    private Text? m_NPC_Tips_TodayTalked_Text = null;
+    private GameObject? m_NPC_Tips_TodayTalked_Checked = null;
 
-    internal GameObject m_NPC_Tips_WasPresent_GO = null;
-    internal Text m_NPC_Tips_WasPresent_Text = null;
-    internal GameObject m_NPC_Tips_WasPresent_CheckedNormal;
-    internal GameObject m_NPC_Tips_WasPresent_CheckedLikes;
-    internal GameObject m_NPC_Tips_WasPresent_CheckedLoves;
+    private GameObject? m_NPC_Tips_WasPresent_GO = null;
+    private Text? m_NPC_Tips_WasPresent_Text = null;
+    private GameObject? m_NPC_Tips_WasPresent_CheckedNormal = null;
+    private GameObject? m_NPC_Tips_WasPresent_CheckedLikes = null;
+    private GameObject? m_NPC_Tips_WasPresent_CheckedLoves = null;
 
-    internal GameObject m_NPC_Tips_BirthdayLeft_GO = null;
-    internal Text m_NPC_Tips_BirthdayLeft_Text = null;
+    private GameObject? m_NPC_Tips_BirthdayLeft_GO = null;
+    private Text? m_NPC_Tips_BirthdayLeft_Text = null;
 
-    internal GameObject m_NPC_Tips_Alert_BirthdayToday_GO = null;
-    internal Text m_NPC_Tips_Alert_BirthdayToday_Text = null;
+    private GameObject? m_NPC_Tips_Alert_BirthdayToday_GO = null;
+    private Text? m_NPC_Tips_Alert_BirthdayToday_Text = null;
 
-    internal GameObject m_Monster_Tips_BrushingToday_GO = null;
-    internal Text m_Monster_Tips_BrushingToday_Text = null;
-    internal GameObject m_Monster_Tips_BrushingToday_Checked = null;
+    private GameObject? m_Monster_Tips_BrushingToday_GO = null;
+    private Text? m_Monster_Tips_BrushingToday_Text = null;
+    private GameObject? m_Monster_Tips_BrushingToday_Checked = null;
 
-    internal GameObject m_Monster_Tips_WasPresent_GO = null;
-    internal Text m_Monster_Tips_WasPresent_Text = null;
-    internal GameObject m_Monster_Tips_WasPresent_Checked = null;
+    private GameObject? m_Monster_Tips_WasPresent_GO = null;
+    private Text? m_Monster_Tips_WasPresent_Text = null;
+    private GameObject? m_Monster_Tips_WasPresent_Checked = null;
 
-    internal GameObject m_Monster_Tips_HelpingFarm_GO = null;
-    internal Text m_Monster_Tips_HelpingFarm_Text_Title = null;
-    internal Text m_Monster_Tips_HelpingFarm_Text_Place = null;
+    private GameObject? m_Monster_Tips_HelpingFarm_GO = null;
+    private Text? m_Monster_Tips_HelpingFarm_Text_Title = null;
+    private Text? m_Monster_Tips_HelpingFarm_Text_Place = null;
 
-    internal bool PreloadPathes()
+    private bool PreloadPaths()
     {
+        return PreloadNPCPaths() && PreloadMonsterPaths();
+    }
+
+    private bool PreloadNPCPaths()
+    {
+        if (!ShowBirthdayTip.Value && !ShowTalkedTip.Value && !ShowNPCGiftDeliveredTip.Value)
         {
-            GameObject root;
-            if (!this.TryFindGameObject(TransformPaths.Status_NPC, out root))
-            {
-                return false;
-            }
-
-            m_Status_NPC_GO = root;
-            {
-                GameObject parent;
-                if (!root.TryFindGameObject(TransformPaths.NPC_Tips_TodayTalked, out parent))
-                {
-                    return false;
-                }
-
-                m_NPC_Tips_TodayTalked_GO = parent;
-                if (!parent.TryFindComponent<Text>(TransformPaths.NPC_Tips_TodayTalked_Text, out m_NPC_Tips_TodayTalked_Text))
-                {
-                    return false;
-                }
-
-                if (!parent.TryFindGameObject(TransformPaths.NPC_Tips_TodayTalked_Checked, out m_NPC_Tips_TodayTalked_Checked))
-                {
-                    return false;
-                }
-            }
-
-            {
-                GameObject parent;
-                if (!root.TryFindGameObject(TransformPaths.NPC_Tips_WasPresent, out parent))
-                {
-                    return false;
-                }
-
-                m_NPC_Tips_WasPresent_GO = parent;
-                if (!parent.TryFindComponent<Text>(TransformPaths.NPC_Tips_WasPresent_Text, out m_NPC_Tips_WasPresent_Text))
-                {
-                    return false;
-                }
-
-                if (!parent.TryFindGameObject(TransformPaths.NPC_Tips_WasPresent_CheckedNormal, out m_NPC_Tips_WasPresent_CheckedNormal))
-                {
-                    return false;
-                }
-
-                if (!parent.TryFindGameObject(TransformPaths.NPC_Tips_WasPresent_CheckedLikes, out m_NPC_Tips_WasPresent_CheckedLikes))
-                {
-                    return false;
-                }
-
-                if (!parent.TryFindGameObject(TransformPaths.NPC_Tips_WasPresent_CheckedLoves, out m_NPC_Tips_WasPresent_CheckedLoves))
-                {
-                    return false;
-                }
-            }
-
-            {
-                GameObject parent;
-                if (!root.TryFindGameObject(TransformPaths.NPC_Tips_BirthdayLeft, out parent))
-                {
-                    return false;
-                }
-
-                m_NPC_Tips_BirthdayLeft_GO = parent;
-                if (!parent.TryFindComponent<Text>(TransformPaths.NPC_Tips_BirthdayLeft_Text, out m_NPC_Tips_BirthdayLeft_Text))
-                {
-                    return false;
-                }
-            }
-            {
-                GameObject parent;
-                if (!root.TryFindGameObject(TransformPaths.NPC_Tips_Alert_BirthdayToday, out parent))
-                {
-                    return false;
-                }
-
-                m_NPC_Tips_Alert_BirthdayToday_GO = parent;
-                if (!parent.TryFindComponent<Text>(TransformPaths.NPC_Tips_Alert_BirthdayToday_Text, out m_NPC_Tips_Alert_BirthdayToday_Text))
-                {
-                    return false;
-                }
-            }
+            //dont preload if nothing to show
+            return true;
         }
+
+        if (!this.TryFindGameObject(TransformPaths.Status_NPC, out m_Status_NPC_GO))
         {
-            GameObject root;
-            if (!this.TryFindGameObject(TransformPaths.Status_Monster, out root))
-            {
-                return false;
-            }
-
-            m_Status_Monster_GO = root;
-
-            {
-                GameObject parent;
-                if (!root.TryFindGameObject(TransformPaths.Monster_Tips_BrushingToday, out parent))
-                {
-                    return false;
-                }
-
-                m_Monster_Tips_BrushingToday_GO = parent;
-                if (!parent.TryFindComponent<Text>(TransformPaths.Monster_Tips_BrushingToday_Text, out m_Monster_Tips_BrushingToday_Text))
-                {
-                    return false;
-                }
-
-                if (!parent.TryFindGameObject(TransformPaths.Monster_Tips_BrushingToday_Checked, out m_Monster_Tips_BrushingToday_Checked))
-                {
-                    return false;
-                }
-            }
-            {
-                GameObject parent;
-                if (!root.TryFindGameObject(TransformPaths.Monster_Tips_WasPresent, out parent))
-                {
-                    return false;
-                }
-
-                m_Monster_Tips_WasPresent_GO = parent;
-                if (!parent.TryFindComponent<Text>(TransformPaths.Monster_Tips_WasPresent_Text, out m_Monster_Tips_WasPresent_Text))
-                {
-                    return false;
-                }
-
-                if (!parent.TryFindGameObject(TransformPaths.Monster_Tips_WasPresent_Checked, out m_Monster_Tips_WasPresent_Checked))
-                {
-                    return false;
-                }
-            }
-            {
-                GameObject parent;
-                if (!root.TryFindGameObject(TransformPaths.Monster_Tips_HelpingFarm, out parent))
-                {
-                    return false;
-                }
-
-                m_Monster_Tips_HelpingFarm_GO = parent;
-                if (!parent.TryFindComponent<Text>(TransformPaths.Monster_Tips_HelpingFarm_Text_Title, out m_Monster_Tips_HelpingFarm_Text_Title))
-                {
-                    return false;
-                }
-
-                if (!parent.TryFindComponent<Text>(TransformPaths.Monster_Tips_HelpingFarm_Text_Place, out m_Monster_Tips_HelpingFarm_Text_Place))
-                {
-                    return false;
-                }
-            }
+            return false;
         }
+
+        if (!m_Status_NPC_GO.TryFindGameObject(TransformPaths.NPC_Tips_TodayTalked, out m_NPC_Tips_TodayTalked_GO))
+        {
+            return false;
+        }
+
+        if (!m_NPC_Tips_TodayTalked_GO.TryFindComponent<Text>(TransformPaths.NPC_Tips_TodayTalked_Text, out m_NPC_Tips_TodayTalked_Text))
+        {
+            return false;
+        }
+
+        if (!m_NPC_Tips_TodayTalked_GO.TryFindGameObject(TransformPaths.NPC_Tips_TodayTalked_Checked, out m_NPC_Tips_TodayTalked_Checked))
+        {
+            return false;
+        }
+
+        if (!m_Status_NPC_GO.TryFindGameObject(TransformPaths.NPC_Tips_WasPresent, out m_NPC_Tips_WasPresent_GO))
+        {
+            return false;
+        }
+
+        if (!m_NPC_Tips_WasPresent_GO.TryFindComponent<Text>(TransformPaths.NPC_Tips_WasPresent_Text, out m_NPC_Tips_WasPresent_Text))
+        {
+            return false;
+        }
+
+        if (!m_NPC_Tips_WasPresent_GO.TryFindGameObject(TransformPaths.NPC_Tips_WasPresent_CheckedNormal, out m_NPC_Tips_WasPresent_CheckedNormal))
+        {
+            return false;
+        }
+
+        if (!m_NPC_Tips_WasPresent_GO.TryFindGameObject(TransformPaths.NPC_Tips_WasPresent_CheckedLikes, out m_NPC_Tips_WasPresent_CheckedLikes))
+        {
+            return false;
+        }
+
+        if (!m_NPC_Tips_WasPresent_GO.TryFindGameObject(TransformPaths.NPC_Tips_WasPresent_CheckedLoves, out m_NPC_Tips_WasPresent_CheckedLoves))
+        {
+            return false;
+        }
+
+        if (!m_Status_NPC_GO.TryFindGameObject(TransformPaths.NPC_Tips_BirthdayLeft, out m_NPC_Tips_BirthdayLeft_GO))
+        {
+            return false;
+        }
+
+        if (!m_NPC_Tips_BirthdayLeft_GO.TryFindComponent<Text>(TransformPaths.NPC_Tips_BirthdayLeft_Text, out m_NPC_Tips_BirthdayLeft_Text))
+        {
+            return false;
+        }
+
+        if (!m_Status_NPC_GO.TryFindGameObject(TransformPaths.NPC_Tips_Alert_BirthdayToday, out m_NPC_Tips_Alert_BirthdayToday_GO))
+        {
+            return false;
+        }
+
+        if (!m_NPC_Tips_Alert_BirthdayToday_GO.TryFindComponent<Text>(TransformPaths.NPC_Tips_Alert_BirthdayToday_Text, out m_NPC_Tips_Alert_BirthdayToday_Text))
+        {
+            return false;
+        }
+
         return true;
     }
 
-    private FriendPageStatusDisp friendPageStatusDisp = null;
-    private string npc_Tips_BirthdayLeft_Text_Format = string.Empty;
-    internal bool Init(FriendPageStatusDisp friendPageStatusDisp)
+    private bool PreloadMonsterPaths()
     {
-        this.friendPageStatusDisp = friendPageStatusDisp;
-        if (!PreloadPathes())
+        if (!ShowMonsterGiftDeliveredTip.Value && !ShowMonsterGiftDeliveredTip.Value)
+        {
+            //dont preload if nothing to show
+            return true;
+        }
+
+        if (!this.TryFindGameObject(TransformPaths.Status_Monster, out m_Status_Monster_GO))
+        {
+            return false;
+        }
+
+        if (!m_Status_Monster_GO.TryFindGameObject(TransformPaths.Monster_Tips_BrushingToday, out m_Monster_Tips_BrushingToday_GO))
+        {
+            return false;
+        }
+
+        if (!m_Monster_Tips_BrushingToday_GO.TryFindComponent<Text>(TransformPaths.Monster_Tips_BrushingToday_Text, out m_Monster_Tips_BrushingToday_Text))
+        {
+            return false;
+        }
+
+        if (!m_Monster_Tips_BrushingToday_GO.TryFindGameObject(TransformPaths.Monster_Tips_BrushingToday_Checked, out m_Monster_Tips_BrushingToday_Checked))
+        {
+            return false;
+        }
+
+        if (!m_Status_Monster_GO.TryFindGameObject(TransformPaths.Monster_Tips_WasPresent, out m_Monster_Tips_WasPresent_GO))
+        {
+            return false;
+        }
+
+        if (!m_Monster_Tips_WasPresent_GO.TryFindComponent<Text>(TransformPaths.Monster_Tips_WasPresent_Text, out m_Monster_Tips_WasPresent_Text))
+        {
+            return false;
+        }
+
+        if (!m_Monster_Tips_WasPresent_GO.TryFindGameObject(TransformPaths.Monster_Tips_WasPresent_Checked, out m_Monster_Tips_WasPresent_Checked))
+        {
+            return false;
+        }
+
+        if (!m_Status_Monster_GO.TryFindGameObject(TransformPaths.Monster_Tips_HelpingFarm, out m_Monster_Tips_HelpingFarm_GO))
+        {
+            return false;
+        }
+
+        if (!m_Monster_Tips_HelpingFarm_GO.TryFindComponent<Text>(TransformPaths.Monster_Tips_HelpingFarm_Text_Title, out m_Monster_Tips_HelpingFarm_Text_Title))
+        {
+            return false;
+        }
+
+        if (!m_Monster_Tips_HelpingFarm_GO.TryFindComponent<Text>(TransformPaths.Monster_Tips_HelpingFarm_Text_Place, out m_Monster_Tips_HelpingFarm_Text_Place))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private string npc_Tips_BirthdayLeft_Text_Format = string.Empty;
+    private bool Init()
+    {
+        if (!PreloadPaths())
         {
             return false;
         }
@@ -288,7 +293,7 @@ internal class Attachment_LeftStatusPos : MonoBehaviour
         RF5FontHelper.SetFontGlobal(InstanceGO);
 
         Instance = InstanceGO.AddComponent<Attachment_LeftStatusPos>();
-        if (!Instance.Init(friendPageStatusDisp))
+        if (!Instance.Init())
         {
             BepInExLog.LogError("[Attachment_LeftStatusPos] InstantiateAndAttach: PreloadPathes failed");
             Instance = null;
@@ -305,106 +310,115 @@ internal class Attachment_LeftStatusPos : MonoBehaviour
         gameObject.SetActive(isShown);
     }
 
-    internal bool GetShown()
+    private bool GetShown()
     {
         return gameObject.activeSelf;
     }
 
+    private void ResetShown()
+    {
+        m_Status_NPC_GO?.SetActive(false);
+        m_Status_Monster_GO?.SetActive(false);
+
+        m_NPC_Tips_TodayTalked_GO?.SetActive(false);
+        m_NPC_Tips_TodayTalked_Checked?.SetActive(false);
+        m_NPC_Tips_WasPresent_GO?.SetActive(false);
+        m_NPC_Tips_BirthdayLeft_GO?.SetActive(false);
+        m_NPC_Tips_Alert_BirthdayToday_GO?.SetActive(false);
+        m_NPC_Tips_WasPresent_CheckedNormal?.SetActive(false);
+        m_NPC_Tips_WasPresent_CheckedLikes?.SetActive(false);
+        m_NPC_Tips_WasPresent_CheckedLoves?.SetActive(false);
+
+        m_Monster_Tips_BrushingToday_GO?.SetActive(false);
+        m_Monster_Tips_BrushingToday_Checked?.SetActive(false);
+        m_Monster_Tips_WasPresent_GO?.SetActive(false);
+        m_Monster_Tips_WasPresent_Checked?.SetActive(false);
+        m_Monster_Tips_HelpingFarm_GO?.SetActive(false);
+    }
+
     internal void SetNPCData(NpcData npcData)
     {
-        m_Status_NPC_GO.SetActive(true);
-        m_Status_Monster_GO.SetActive(false);
+        ResetShown();
 
-        m_NPC_Tips_TodayTalked_GO.SetActive(false);
-        m_NPC_Tips_WasPresent_GO.SetActive(false);
-        m_NPC_Tips_BirthdayLeft_GO.SetActive(false);
-        m_NPC_Tips_Alert_BirthdayToday_GO.SetActive(false);
+        if ((!ShowBirthdayTip.Value && !ShowTalkedTip.Value && !ShowNPCGiftDeliveredTip.Value) || npcData is null)
+        {
+            return;
+        }
+
+        m_Status_NPC_GO.SetActive(true);
+
+        if (ShowTalkedTip.Value)
         {
             m_NPC_Tips_TodayTalked_GO.SetActive(true);
-
-            bool wasTodayTalked = npcData.TodayTalkCount > 0;
-            m_NPC_Tips_TodayTalked_Checked.SetActive(wasTodayTalked);
+            m_NPC_Tips_TodayTalked_Checked.SetActive(npcData.TodayTalkCount > 0);
         }
+
+        if (ShowNPCGiftDeliveredTip.Value)
         {
             m_NPC_Tips_WasPresent_GO.SetActive(true);
 
             var presentItemTypesArray = npcData.PresentItemTypes.ToArray();
-            bool wasPresentNormal = presentItemTypesArray.Any(x => x == LovePointManager.FavoriteType.Normal);
-            bool wasPresentFavorite = presentItemTypesArray.Any(x => x == LovePointManager.FavoriteType.Favorite);
-            bool wasPresentVeryFavorite = presentItemTypesArray.Any(x => x == LovePointManager.FavoriteType.VeryFavorite);
-
-            m_NPC_Tips_WasPresent_CheckedNormal.SetActive(wasPresentNormal);
-            m_NPC_Tips_WasPresent_CheckedLikes.SetActive(wasPresentFavorite);
-            m_NPC_Tips_WasPresent_CheckedLoves.SetActive(wasPresentVeryFavorite);
+            m_NPC_Tips_WasPresent_CheckedNormal.SetActive(presentItemTypesArray.Any(x => x == LovePointManager.FavoriteType.Normal));
+            m_NPC_Tips_WasPresent_CheckedLikes.SetActive(presentItemTypesArray.Any(x => x == LovePointManager.FavoriteType.Favorite));
+            m_NPC_Tips_WasPresent_CheckedLoves.SetActive(presentItemTypesArray.Any(x => x == LovePointManager.FavoriteType.VeryFavorite));
         }
 
-        var isBirthday = NpcDataManager.Instance.LovePointManager.IsBirthDay(npcData.NpcId);
+        if (ShowBirthdayTip.Value)
         {
-            if (isBirthday)
+            if (NpcDataManager.Instance.LovePointManager.IsBirthDay(npcData.NpcId))
             {
-                m_NPC_Tips_BirthdayLeft_GO.SetActive(false);
+                m_NPC_Tips_Alert_BirthdayToday_GO.SetActive(true);
+                return;
+            }
+
+            if (npcData.TryFindNPCBirthday(out Define.Season birthday_season, out int birthday_day))
+            {
+                m_NPC_Tips_BirthdayLeft_GO.SetActive(true);
+                var local_Today = ((int)TimeManager.Instance.Season * RF5CalendarConstants.DaysInMonth) + TimeManager.Instance.Day;
+                var local_Birthday = ((int)birthday_season * RF5CalendarConstants.DaysInMonth) + birthday_day;
+                int leftDay = 0;
+                if (local_Today > local_Birthday)
+                {
+                    //Birthday has already passed
+                    leftDay = RF5CalendarConstants.DaysInYear;
+                }
+
+                leftDay += local_Birthday - local_Today;
+
+                m_NPC_Tips_BirthdayLeft_Text.text = string.Format(npc_Tips_BirthdayLeft_Text_Format, leftDay);
             }
             else
             {
-                m_NPC_Tips_BirthdayLeft_GO.SetActive(true);
-
-                Define.Season birthday_season;
-                int birthday_day;
-                if (npcData.TryFindNPCBirthday(out birthday_season, out birthday_day))
-                {
-                    var local_Today = ((int)TimeManager.Instance.Season * DaysInMonth) + TimeManager.Instance.Day;
-                    var local_Birthday = ((int)birthday_season * DaysInMonth) + birthday_day;
-                    int leftDay = 0;
-                    if (local_Today < local_Birthday) //Birthday not spend yet
-                    {
-                        leftDay = local_Birthday - local_Today;
-                    }
-                    else
-                    {
-                        leftDay = (4 * DaysInMonth) - local_Today + local_Birthday;
-                    }
-
-                    m_NPC_Tips_BirthdayLeft_Text.text = string.Format(npc_Tips_BirthdayLeft_Text_Format, leftDay);
-                }
-                else
-                {
-                    m_NPC_Tips_BirthdayLeft_GO.SetActive(false);
-                    BepInExLog.LogError($"[Attachment_LeftStatusPos] Cannot find {npcData.actorId}'s birthday");
-                }
+                BepInExLog.LogError($"[Attachment_LeftStatusPos] Cannot find {npcData.actorId}'s birthday");
             }
-        }
-        {
-            m_NPC_Tips_Alert_BirthdayToday_GO.SetActive(isBirthday);
         }
     }
 
-    internal void SetMonsterData(FriendMonsterStatusData friendMonsterData, MonsterDataTable monsterData)
+    internal void SetMonsterData(FriendMonsterStatusData friendMonsterData)
     {
-        m_Status_NPC_GO.SetActive(false);
+        ResetShown();
+
+        if ((!ShowMonsterGiftDeliveredTip.Value && !ShowMonsterHelpingTip.Value && !ShowMonsterBrushedTip.Value) || friendMonsterData is null)
+        {
+            return;
+        }
+
         m_Status_Monster_GO.SetActive(true);
 
-        m_Monster_Tips_BrushingToday_Checked.SetActive(friendMonsterData.IsBrushed);
-        m_Monster_Tips_WasPresent_Checked.SetActive(friendMonsterData.IsPresent);
-        //bool wasGetFood = friendMonsterData.EsaGet;
+        m_Monster_Tips_BrushingToday_Checked.SetActive(friendMonsterData.IsBrushed && ShowMonsterBrushedTip.Value);
+        m_Monster_Tips_WasPresent_Checked.SetActive(friendMonsterData.IsPresent && ShowMonsterGiftDeliveredTip.Value);
 
-        bool isHelpingFarm = friendMonsterData.FarmFieldWorkArea != Define.FarmFieldWorkArea.None;
-        m_Monster_Tips_HelpingFarm_GO.SetActive(isHelpingFarm);
-        if (isHelpingFarm)
+        if (ShowMonsterHelpingTip.Value && friendMonsterData.FarmFieldWorkArea != Define.FarmFieldWorkArea.None)
         {
+            m_Monster_Tips_HelpingFarm_GO.SetActive(true);
             string farmName = RF5DataExtension.GetFarmName(friendMonsterData.FarmId);
-            string workAreaStr = string.Empty;
-            switch (friendMonsterData.FarmFieldWorkArea)
+            string workAreaStr = friendMonsterData.FarmFieldWorkArea switch
             {
-                case Define.FarmFieldWorkArea.Left:
-                    workAreaStr = LocalizationManager.Load("monster.tips.workarea.left");
-                    break;
-                case Define.FarmFieldWorkArea.Center:
-                    workAreaStr = LocalizationManager.Load("monster.tips.workarea.center");
-                    break;
-                case Define.FarmFieldWorkArea.Right:
-                    workAreaStr = LocalizationManager.Load("monster.tips.workarea.right");
-                    break;
-            }
+                Define.FarmFieldWorkArea.Left => LocalizationManager.Load("monster.tips.workarea.left"),
+                Define.FarmFieldWorkArea.Center => LocalizationManager.Load("monster.tips.workarea.center"),
+                Define.FarmFieldWorkArea.Right => LocalizationManager.Load("monster.tips.workarea.right"),
+                _ => string.Empty,
+            };
 
             m_Monster_Tips_HelpingFarm_Text_Place.text = $"{farmName} ({workAreaStr})";
         }

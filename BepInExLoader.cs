@@ -3,6 +3,9 @@ using HarmonyLib;
 using BepInEx.Unity.IL2CPP;
 using Il2CppInterop.Runtime.Injection;
 using RF5.HisaCat.NPCDetails.Utils;
+using BepInEx.Configuration;
+using RF5.HisaCat.NPCDetails.NPCDetailWindow;
+using AsmResolver.PE.DotNet.Cil;
 
 namespace RF5.HisaCat.NPCDetails;
 
@@ -20,13 +23,23 @@ public class BepInExLoader : BasePlugin
         return Path.GetDirectoryName(IL2CPPChainloader.Instance.Plugins[GUID].Location);
     }
 
+    internal void LoadConfigs(){
+        
+        BepInExLog.EnableLogging = Config.Bind("Logging", nameof(BepInExLog.EnableLogging), true, "Set to true to enable logging of changed values by the mod.");
+        Attachment_LeftStatusPos.LoadConfig(Config);
+        Attachment_RightStatusPos.LoadConfig(Config);
+    }
+
     public override void Load()
     {
+        //Config
+        LoadConfigs();
+
         try
         {
             //Register components
-            ClassInjector.RegisterTypeInIl2Cpp<NPCDetailWindow.Attachment_LeftStatusPos>();
-            ClassInjector.RegisterTypeInIl2Cpp<NPCDetailWindow.Attachment_RightStatusPos>();
+            ClassInjector.RegisterTypeInIl2Cpp<Attachment_LeftStatusPos>();
+            ClassInjector.RegisterTypeInIl2Cpp<Attachment_RightStatusPos>();
         }
         catch (Exception e)
         {
@@ -36,14 +49,10 @@ public class BepInExLoader : BasePlugin
 
         try
         {
-            //Config
-            BepInExLog.EnableLogging = Config.Bind("General", nameof(BepInExLog.EnableLogging), true, "Set to true to enable logging of changed values by the mod.");
-
             //Patches
             Harmony.CreateAndPatchAll(typeof(RF5FontHelper.FontLoader));
             Harmony.CreateAndPatchAll(typeof(SVPatcher));
             Harmony.CreateAndPatchAll(typeof(UIPatcher));
-            //Harmony.CreateAndPatchAll(typeof(CalcStatusPatcher)); //for test
         }
         catch (Exception e)
         {
@@ -123,17 +132,18 @@ public class BepInExLoader : BasePlugin
         [HarmonyPostfix]
         private static void GenerateFriendDataPostfix(GenerateFriendlistButton __instance)
         {
-            //It called on friendly page opened, and friendly insided tab (Friends, Monsters) changed.
+            //It called when the friend list page is opened, and friend tab has (Friends, Monsters) changed.
             //BepInExLog.Log($"GenerateFriendDataPostfix. friendType: {__instance.friendType}");
         }
+
         [HarmonyPatch(typeof(FriendPageStatusDisp), nameof(FriendPageStatusDisp.SetStatusNPC))]
         [HarmonyPostfix]
         private static void SetStatusNPCPostfix(FriendPageStatusDisp __instance, int pageId, GenerateFriendlistButton _generateFriendlistButton)
         {
-            //It called on friend detail opened and switched to another firend.
+            //Function called when friend detail opened and switched to another firend.
             //and '__instance.actorId' is equals with '_generateFriendlistButton.GetActorID(pageId)'
             //and 'pageId' is index of friend list button (starts with 0)
-            //BepInExLog.Log($"SetStatusNPCPostfix. pageId: {pageId}, actorId: {__instance.actorId}");
+            BepInExLog.LogDebug($"SetStatusNPCPostfix. pageId: {pageId}, actorId: {__instance.actorId}");
 
             NPCDetailWindow.NPCDetailWindowManager.TryAttachIfNotExist(__instance);
 
@@ -142,34 +152,26 @@ public class BepInExLoader : BasePlugin
             NPCDetailWindow.NPCDetailWindowManager.TrySetNPCData(npcData);
 
             #region DEBUG
-            //BepInExLog.Log($" - CurrentPlace: {npcData.CurrentPlace}"); //Print current npc's place.
-            //BepInExLog.Log($" - TargetPlace: {npcData.TargetPlace}"); //Display npc's destination if it exist.
-            //BepInExLog.Log($" - Loves: {string.Join(", ", npcData.GetVeryFavoriteItemDataTables().Select(x => $"{x.GetItemName()}({(int)ItemDataTable.GetItemID(x.ItemIndex)})"))}");
-            //BepInExLog.Log($" - Likes: {string.Join(", ", npcData.GetFavoriteItemDataTables().Select(x => $"{x.GetItemName()}({(int)ItemDataTable.GetItemID(x.ItemIndex)})"))}");
-            //BepInExLog.Log($" - Dislikes: {string.Join(", ", npcData.GetNotFavoriteItemDataTables().Select(x => $"{x.GetItemName()}({(int)ItemDataTable.GetItemID(x.ItemIndex)})"))}");
-            //BepInExLog.Log($" - Hates: {string.Join(", ", npcData.GetNotFavoriteBadlyItemDataTables().Select(x => $"{x.GetItemName()}({(int)ItemDataTable.GetItemID(x.ItemIndex)})"))}");
-            //BepInExLog.Log("");
+            BepInExLog.LogNPCData(npcData);
 
             //Print all npc's detials
-            //foreach (Define.ActorID actorId in typeof(Define.ActorID).GetEnumValues())
-            //{
-            //    var npcData = NpcDataManager.Instance.GetNpcData(actorId);
-            //    if (npcData is null) continue;
-            //    BepInExLog.Log($"{npcData.GetNpcName()} ({actorId.ToString()})");
-            //    BepInExLog.Log($"{npcData.GetNpcDiscript()}\r\n");
-            //    BepInExLog.Log($" - Loves: {string.Join(", ", npcData.GetVeryFavoriteItemDataTables().OrderBy(x => x.ItemIndex).Select(x => $"{x.GetItemName()}({(int)ItemDataTable.GetItemID(x.ItemIndex)})"))}");
-            //    BepInExLog.Log($" - Likes: {string.Join(", ", npcData.GetFavoriteItemDataTables().OrderBy(x => x.ItemIndex).Select(x => $"{x.GetItemName()}({(int)ItemDataTable.GetItemID(x.ItemIndex)})"))}");
-            //    BepInExLog.Log($" - Dislikes: {string.Join(", ", npcData.GetNotFavoriteItemDataTables().OrderBy(x => x.ItemIndex).Select(x => $"{x.GetItemName()}({(int)ItemDataTable.GetItemID(x.ItemIndex)})"))}");
-            //    BepInExLog.Log($" - Hates: {string.Join(", ", npcData.GetNotFavoriteBadlyItemDataTables().OrderBy(x => x.ItemIndex).Select(x => $"{x.GetItemName()}({(int)ItemDataTable.GetItemID(x.ItemIndex)})"))}");
-            //    BepInExLog.Log("");
-            //}
+            foreach (Define.ActorID actorId in typeof(Define.ActorID).GetEnumValues())
+            {
+                var actorData = NpcDataManager.Instance.GetNpcData(actorId);
+                if (actorData is null)
+                {
+                    continue;
+                }
+
+                BepInExLog.LogNPCData(actorData);
+            }
             #endregion DEBUG
         }
         [HarmonyPatch(typeof(FriendPageStatusDisp), nameof(FriendPageStatusDisp.SetStatusMonster))]
         [HarmonyPostfix]
         private static void SetStatusMonsterPostfix(FriendPageStatusDisp __instance, int pageId, GenerateFriendlistButton _generateFriendlistButton)
         {
-            //Same with 'SetStatusNPCPostfix' but in moster case
+            //Same with 'SetStatusNPCPostfix' but in monter case
             //But in this case, trust 'monsterDataID' instead 'actorId'
             //BepInExLog.Log($"SetStatusMonsterPostfix. pageId: {pageId}, monsterDataID: {__instance.monsterDataID}");
             NPCDetailWindow.NPCDetailWindowManager.TryAttachIfNotExist(__instance);
@@ -191,4 +193,3 @@ public class BepInExLoader : BasePlugin
         }
     }
 }
-

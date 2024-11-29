@@ -25,28 +25,27 @@ internal static class LocalizationManager
 
 internal class LocalizedString
 {
-    internal static string GetLocaleStr(BootOption.SystemLanguage lang)
+    private const BootOption.SystemLanguage FallbackLang = BootOption.SystemLanguage.English;
+    private readonly Dictionary<BootOption.SystemLanguage, Dictionary<string, string>> dic = [];
+    private readonly string Path = string.Empty;
+
+    internal LocalizedString(string path)
     {
-        switch (lang)
-        {
-            case BootOption.SystemLanguage.English:
-                return "en_US";
-            case BootOption.SystemLanguage.Japanese:
-                return "ja_JP";
-            case BootOption.SystemLanguage.ChineseSimplified:
-                return "zh_CN";
-            case BootOption.SystemLanguage.ChineseTraditional:
-                return "zh_TW";
-            case BootOption.SystemLanguage.Korean:
-                return "ko_KR";
-            case BootOption.SystemLanguage.French:
-                return "fr_FR";
-            case BootOption.SystemLanguage.Germen:
-                return "de_DE";
-            default:
-                return string.Empty;
-        }
+        Path = path;
     }
+
+    internal static string GetLocaleStr(BootOption.SystemLanguage lang) => lang switch
+    {
+        BootOption.SystemLanguage.English => "en_US",
+        BootOption.SystemLanguage.Japanese => "ja_JP",
+        BootOption.SystemLanguage.ChineseSimplified => "zh_CN",
+        BootOption.SystemLanguage.ChineseTraditional => "zh_TW",
+        BootOption.SystemLanguage.Korean => "ko_KR",
+        BootOption.SystemLanguage.French => "fr_FR",
+        BootOption.SystemLanguage.Germen => "de_DE",
+        _ => string.Empty,
+    };
+
     internal static void CreateTemplate()
     {
         var data = new Dictionary<string, string>();
@@ -64,38 +63,41 @@ internal class LocalizedString
         }
     }
 
-    internal const BootOption.SystemLanguage FallbackLang = BootOption.SystemLanguage.English;
-    private Dictionary<BootOption.SystemLanguage, Dictionary<string, string>> dic = null;
-    internal readonly string Path = string.Empty;
-    internal LocalizedString(string path)
-    {
-        Path = path;
-        dic = new Dictionary<BootOption.SystemLanguage, Dictionary<string, string>>();
-    }
-
     internal string Load(string key) => Load(key, BootSystem.OptionData.SystemLanguage);
     internal string Load(string key, BootOption.SystemLanguage lang)
     {
-        if (!dic.ContainsKey(lang))
+        if (dic.TryGetValue(lang, out var value))
         {
-            //Load.
-            var datas = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            var curPath = System.IO.Path.Combine(BepInExLoader.GetPluginRootDirectory(), BepInExLoader.GUID, Path, $"{GetLocaleStr(lang)}.json");
-            if (File.Exists(curPath))
-            {
-                var json = File.ReadAllText(curPath);
-                datas = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
-            }
-            dic.Add(lang, datas);
+            return value[key];
         }
 
-        if (dic[lang].ContainsKey(key))
+        //Load language
+        var datas = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var curPath = System.IO.Path.Combine(BepInExLoader.GetPluginRootDirectory(), BepInExLoader.GUID, Path, $"{GetLocaleStr(lang)}.json");
+        if (File.Exists(curPath))
         {
-            return dic[lang][key];
+            var json = File.ReadAllText(curPath);
+            datas = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+        }
+        dic.Add(lang, datas);
+
+        if (dic.TryGetValue(lang, out var value2))
+        {
+            if (value2.TryGetValue(key, out var value3))
+            {
+                return value3;
+            }
+            else
+            {
+                //Fallback
+                BepInExLog.LogWarning($"Missing key for {GetLocaleStr(lang)} : {key}");
+                return lang != FallbackLang ? Load(key, FallbackLang) : key;
+            }
         }
         else
         {
             //Fallback
+            BepInExLog.LogWarning($"Missing language files for {lang}.");
             return lang != FallbackLang ? Load(key, FallbackLang) : key;
         }
     }

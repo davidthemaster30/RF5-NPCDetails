@@ -50,7 +50,7 @@ internal static class RF5FontHelper
                     var sText = handler.Result.GetComponentInChildren<SText>();
                     if (sText is null)
                     {
-                        BepInExLog.LogError($"FontLoader: Cannot find SText");
+                        BepInExLog.LogError("FontLoader: Cannot find SText");
                     }
                     else
                     {
