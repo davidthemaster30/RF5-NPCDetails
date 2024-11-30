@@ -126,7 +126,7 @@ internal static class RF5DataExtension
             }
         }
 
-        BepInExLog.LogError($"Could not find NPC {npcID} BirthDay!");
+        BepInExLog.LogError($"Could not find NPC's {npcID} BirthDay!");
         season = Define.Season.None;
         day = -1;
         return false;
@@ -136,7 +136,7 @@ internal static class RF5DataExtension
     {
         if (monsterIdx < 0 || monsterIdx >= FriendMonsterManager.FriendMonsterStatusDatas.Count)
         {
-            BepInExLog.LogError($"Cannot find FriendMonsterStatusDatas cause monsterIdx Invalid! monsterIdx: {monsterIdx}, statusDatasCount: {FriendMonsterManager.FriendMonsterStatusDatas.Count}");
+            BepInExLog.LogError($"Cannot find FriendMonsterStatusDatas because monsterIdx is invalid! monsterIdx: {monsterIdx}, statusDatasCount: {FriendMonsterManager.FriendMonsterStatusDatas.Count}");
             return null;
         }
 
@@ -149,7 +149,7 @@ internal static class RF5DataExtension
 
         if (data.MonsterDataID != monsterData.DataID)
         {
-            BepInExLog.LogError($"Friend monster finded at {monsterIdx} but dataId missmatched! finded: {data.MonsterDataID} req: {monsterData.DataID}");
+            BepInExLog.LogError($"Friend monster found at {monsterIdx} but dataId missmatched! found: {data.MonsterDataID} req: {monsterData.DataID}");
             return null;
         }
 

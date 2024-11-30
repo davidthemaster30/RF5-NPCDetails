@@ -19,7 +19,7 @@ internal static class BundleLoader
         var mainBundlePath = Path.Combine(bundleDir, "npcdetails.main.unity3d");
         if (!File.Exists(mainBundlePath))
         {
-            BepInExLog.LogError($"[BundleLoader] Bundle missing. bundle must be placed at \"{mainBundlePath}\"");
+            BepInExLog.LogError($"[BundleLoader] Bundle missing at \"{mainBundlePath}\"");
             return false;
         }
 
