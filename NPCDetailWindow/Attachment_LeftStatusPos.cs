@@ -405,8 +405,10 @@ internal class Attachment_LeftStatusPos : MonoBehaviour
 
         m_Status_Monster_GO.SetActive(true);
 
-        m_Monster_Tips_BrushingToday_Checked.SetActive(friendMonsterData.IsBrushed && ShowMonsterBrushedTip.Value);
-        m_Monster_Tips_WasPresent_Checked.SetActive(friendMonsterData.IsPresent && ShowMonsterGiftDeliveredTip.Value);
+        m_Monster_Tips_BrushingToday_GO.SetActive(ShowMonsterBrushedTip.Value);
+        m_Monster_Tips_BrushingToday_Checked.SetActive(friendMonsterData.IsBrushed);
+        m_Monster_Tips_WasPresent_GO.SetActive(ShowMonsterGiftDeliveredTip.Value);
+        m_Monster_Tips_WasPresent_Checked.SetActive(friendMonsterData.IsPresent);
 
         if (ShowMonsterHelpingTip.Value && friendMonsterData.FarmFieldWorkArea != Define.FarmFieldWorkArea.None)
         {
