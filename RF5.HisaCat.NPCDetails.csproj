@@ -3,6 +3,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>RF5.HisaCat.NPCDetails</AssemblyName>
     <Description>RF5.HisaCat.NPCDetails</Description>
+    <Company>https://github.com/davidthemaster30/RF5-NPCDetails</Company>
     <Version>1.4.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
@@ -55,60 +56,8 @@
       <HintPath>libs\UnityEngine.TextRenderingModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="BepInEx.KeyboardShortcut">
+      <HintPath>libs\BepInEx.KeyboardShortcut.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>
-
-<!-- <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ItemGroup>
-    <None Include="RF5.HisaCat.NPCDetails\Localized\de_DE.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="RF5.HisaCat.NPCDetails\Localized\en_US.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="RF5.HisaCat.NPCDetails\Localized\fr_FR.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="RF5.HisaCat.NPCDetails\Localized\ja_JP.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="RF5.HisaCat.NPCDetails\Localized\ko_KR.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="RF5.HisaCat.NPCDetails\Localized\zh_CN.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="RF5.HisaCat.NPCDetails\Localized\zh_TW.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="RF5.HisaCat.NPCDetails\npcdetails.main.unity3d">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Text.Json, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.AssetBundleModule">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Rune Factory 5\BepInEx\interop\UnityEngine.AssetBundleModule.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.IMGUIModule">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Rune Factory 5\BepInEx\interop\UnityEngine.IMGUIModule.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.TextRenderingModule">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Rune Factory 5\BepInEx\interop\UnityEngine.TextRenderingModule.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <PostBuildEvent>copy "$(TargetDir)RF5.HisaCat.NPCDetails.dll" "C:\Program Files (x86)\Steam\steamapps\common\Rune Factory 5\BepInEx\plugins"
-mkdir "C:\Program Files (x86)\Steam\steamapps\common\Rune Factory 5\BepInEx\plugins\RF5.HisaCat.NPCDetails"
-xcopy "$(TargetDir)RF5.HisaCat.NPCDetails\*.*" "C:\Program Files (x86)\Steam\steamapps\common\Rune Factory 5\BepInEx\plugins\RF5.HisaCat.NPCDetails" /Y /I /E</PostBuildEvent>
-  </PropertyGroup>
-</Project> -->
