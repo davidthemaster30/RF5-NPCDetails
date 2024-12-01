@@ -1,5 +1,9 @@
 ﻿# Release notes
 
+## v1.5.0
+- Add configs for UI elements
+- Add Monster Drops
+
 ## v1.4.0
 - Support Newer version of BepInEx
 - Migrate Newtonsoft.json to System.Text.Json
