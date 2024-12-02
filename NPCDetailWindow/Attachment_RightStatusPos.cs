@@ -34,21 +34,13 @@ internal class Attachment_RightStatusPos : MonoBehaviour
         ShowHates.SettingChanged += ResetNPCTextCache;
 
         ShowTamingItems = Config.Bind(RightSection, nameof(ShowTamingItems), true, "Set to true to enable showing a monster's liked items for taming.");
-        ShowTamingItems.SettingChanged += ResetMonsterTextCache;
         ShowDropItems = Config.Bind(RightSection, nameof(ShowDropItems), true, "Set to true to enable showing a monster's drop items.");
-        ShowDropItems.SettingChanged += ResetMonsterTextCache;
         ShowProduceItems = Config.Bind(RightSection, nameof(ShowProduceItems), true, "Set to true to enable showing a monster's produced items.");
-        ShowProduceItems.SettingChanged += ResetMonsterTextCache;
     }
 
     internal static void ResetNPCTextCache(object sender, EventArgs e)
     {
         detailTextNPCCache?.Clear();
-    }
-
-    internal static void ResetMonsterTextCache(object sender, EventArgs e)
-    {
-        detailTextMonsterCache?.Clear();
     }
 
     private const string PrefabPathFromBundle = "[RF5.HisaCat.NPCDetails]RightStatusPos";
@@ -74,7 +66,6 @@ internal class Attachment_RightStatusPos : MonoBehaviour
     private Text? m_Monster_DetailText = null;
 
     private static Dictionary<Define.ActorID, string>? detailTextNPCCache = null;
-    private static Dictionary<MonsterID, string>? detailTextMonsterCache = null;
     private UIOnOffAnimate equipMenuItemDetail = null;
 
     private bool PreloadPathes()
@@ -110,7 +101,6 @@ internal class Attachment_RightStatusPos : MonoBehaviour
     internal bool Init(UIOnOffAnimate equipMenuItemDetail)
     {
         detailTextNPCCache ??= [];
-        detailTextMonsterCache ??= [];
 
         this.equipMenuItemDetail = equipMenuItemDetail;
         return PreloadPathes();
@@ -250,11 +240,6 @@ internal class Attachment_RightStatusPos : MonoBehaviour
 
     private static string GetDetailText(MonsterDataTable monsterData)
     {
-        if (detailTextMonsterCache.TryGetValue(monsterData.MonsterId, out var detailText))
-        {
-            return detailText;
-        }
-
         var text = string.Empty;
 
         text += $"<size=25>{LocalizationManager.Load("monster.detail.title.origin_name")}:</size> {RF5DataExtension.GetMonsterName(monsterData.MonsterId)}{Environment.NewLine}{Environment.NewLine}";
@@ -291,7 +276,6 @@ internal class Attachment_RightStatusPos : MonoBehaviour
             }
         }
 
-        detailTextMonsterCache.Add(monsterData.MonsterId, text);
         return text;
     }
 
