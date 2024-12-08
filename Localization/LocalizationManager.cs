@@ -58,7 +58,7 @@ internal class LocalizedString
 
         for (var lang = BootOption.SystemLanguage.English; lang <= BootOption.SystemLanguage.Germen; lang++)
         {
-            var path = System.IO.Path.Combine(BepInExLoader.GetPluginRootDirectory(), BepInExLoader.GUID, $"{GetLocaleStr(lang)}.json");
+            var path = System.IO.Path.Combine(BepInExLoader.GetPluginRootDirectory(), MyPluginInfo.PLUGIN_GUID, $"{GetLocaleStr(lang)}.json");
             File.WriteAllText(path, json);
         }
     }
@@ -73,7 +73,7 @@ internal class LocalizedString
 
         //Load language
         var datas = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        var curPath = System.IO.Path.Combine(BepInExLoader.GetPluginRootDirectory(), BepInExLoader.GUID, Path, $"{GetLocaleStr(lang)}.json");
+        var curPath = System.IO.Path.Combine(BepInExLoader.GetPluginRootDirectory(), MyPluginInfo.PLUGIN_GUID, Path, $"{GetLocaleStr(lang)}.json");
         if (File.Exists(curPath))
         {
             var json = File.ReadAllText(curPath);

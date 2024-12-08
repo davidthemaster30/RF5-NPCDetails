@@ -15,7 +15,7 @@ internal static class BundleLoader
             return true;
         }
         
-        var bundleDir = Path.Combine(BepInExLoader.GetPluginRootDirectory(), BepInExLoader.GUID);
+        var bundleDir = Path.Combine(BepInExLoader.GetPluginRootDirectory(), MyPluginInfo.PLUGIN_GUID);
         var mainBundlePath = Path.Combine(bundleDir, "npcdetails.main.unity3d");
         if (!File.Exists(mainBundlePath))
         {

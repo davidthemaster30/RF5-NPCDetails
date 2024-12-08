@@ -17,7 +17,7 @@ public class BepInExLoader : BasePlugin
 
     internal static string GetPluginRootDirectory()
     {
-        return Path.GetDirectoryName(IL2CPPChainloader.Instance.Plugins[GUID].Location);
+        return Path.GetDirectoryName(IL2CPPChainloader.Instance.Plugins[MyPluginInfo.PLUGIN_GUID].Location);
     }
 
     internal void LoadConfig()
