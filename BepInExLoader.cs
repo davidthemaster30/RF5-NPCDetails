@@ -9,22 +9,20 @@ using AsmResolver.PE.DotNet.Cil;
 
 namespace RF5.HisaCat.NPCDetails;
 
-[BepInPlugin(GUID, MODNAME, VERSION)]
+[BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
+[BepInProcess(GAME_PROCESS)]
 public class BepInExLoader : BasePlugin
 {
-    internal const string
-        MODNAME = "NPCDetails",
-        AUTHOR = "HisaCat",
-        GUID = "RF5." + AUTHOR + "." + MODNAME,
-        VERSION = "1.4.0";
+    private const string GAME_PROCESS = "Rune Factory 5.exe";
 
     internal static string GetPluginRootDirectory()
     {
         return Path.GetDirectoryName(IL2CPPChainloader.Instance.Plugins[GUID].Location);
     }
 
-    internal void LoadConfigs(){
-        
+    internal void LoadConfig()
+    {
+
         BepInExLog.EnableLogging = Config.Bind("Logging", nameof(BepInExLog.EnableLogging), true, "Set to true to enable logging of changed values by the mod.");
         Attachment_LeftStatusPos.LoadConfig(Config);
         Attachment_RightStatusPos.LoadConfig(Config);
@@ -32,33 +30,33 @@ public class BepInExLoader : BasePlugin
 
     public override void Load()
     {
-        //Config
-        LoadConfigs();
+        Log.LogInfo($"Plugin {MyPluginInfo.PLUGIN_NAME} {MyPluginInfo.PLUGIN_VERSION} is loading!");
+
+        LoadConfig();
 
         try
         {
-            //Register components
             ClassInjector.RegisterTypeInIl2Cpp<Attachment_LeftStatusPos>();
             ClassInjector.RegisterTypeInIl2Cpp<Attachment_RightStatusPos>();
+            BepInExLog.LogInfo("[Harmony] RegisterTypeInIl2Cpp succeed.");
         }
         catch (Exception e)
         {
             BepInExLog.LogError($"Harmony - FAILED to Register Il2Cpp Types! {e}");
         }
-        BepInExLog.LogInfo("[Harmony] RegisterTypeInIl2Cpp succeed.");
 
         try
         {
-            //Patches
             Harmony.CreateAndPatchAll(typeof(RF5FontHelper.FontLoader));
             Harmony.CreateAndPatchAll(typeof(SVPatcher));
             Harmony.CreateAndPatchAll(typeof(UIPatcher));
+
+            Log.LogInfo($"Plugin {MyPluginInfo.PLUGIN_NAME} {MyPluginInfo.PLUGIN_VERSION} is loaded!");
         }
         catch (Exception e)
         {
             BepInExLog.LogError($"Harmony - FAILED to Apply Patch's! {e}");
         }
-        BepInExLog.LogInfo("[Harmony] Patch succeed.");
     }
 
 
